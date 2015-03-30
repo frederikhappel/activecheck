@@ -1,0 +1,7 @@
+name: Suite
+parallel: classes
+tests:
+  - name: TestAll
+    parallel: classes
+    classes:
+      - org.activecheck.PropertiesParseTest

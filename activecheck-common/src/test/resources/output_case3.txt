@@ -1,0 +1,6 @@
+message_line1 | perfdata_line1=3;5;6;0;10
+message_line2
+message_line3
+message_line4 | perfdata_line2=3;5;6;0;10
+perfdata_line3=3;5;6;0;10
+perfdata_line4=3;5;6;0;10

@@ -1,0 +1,7 @@
+OK - 6 CPUs 1.0% (warn@ 0%, crit@0.0%) | cpu0_idle=31684642 cpu0_iowait=5692953 cpu0_irq=89 cpu0_nice=17164 cpu0_softirq=102108 cpu0_steal=0 cpu0_system=1180104 cpu0_unused=31684642 cpu0_used=6361197;0;0 cpu0_user=5163929 cpu1_idle=30633264 cpu1_iowait=6533450 cpu1_irq=0 cpu1_nice=45673 cpu1_softirq=26186 cpu1_steal=0 cpu1_system=959285 cpu1_unused=30633264 cpu1_used=6767403;0;0 cpu1_user=5762445 cpu2_idle=30954079 cpu2_iowait=6395584 cpu2_irq=0 cpu2_nice=46737 cpu2_softirq=25825 cpu2_steal=0 cpu2_system=929551 cpu2_unused=30954079 cpu2_used=6590944;0;0 cpu2_user=5614656 cpu3_idle=31367427 cpu3_iowait=6190350 cpu3_irq=0 cpu3_nice=43059 cpu3_softirq=24979 cpu3_steal=0 cpu3_system=914940 cpu3_unused=31367427 cpu3_used=6391531;0;0 cpu3_user=5433532 cpu4_idle=31550791 cpu4_iowait=6114526 cpu4_irq=0 cpu4_nice=47721 cpu4_softirq=24753 cpu4_steal=0 cpu4_system=906595 cpu4_unused=31550791 cpu4_used=6282976;0;0 cpu4_user=5328660 cpu5_idle=31723062 cpu5_iowait=5993653 cpu5_irq=0 cpu5_nice=44318 cpu5_softirq=24539 cpu5_steal=0 cpu5_system=907939 cpu5_unused=31723062 cpu5_used=6234126;0;0 cpu5_user=5281869 cpu_idle=187913267 cpu_iowait=36920519 cpu_irq=90 cpu_nice=244675 cpu_softirq=228393 cpu_steal=0 cpu_system=5798417 cpu_unused=187913267 cpu_used=38628186;0;0 cpu_user=32585094
+CPU0 3.0% used
+CPU1 3.0% used
+CPU2 4.0% used
+CPU3 1.0% used
+CPU4 8.0% used
+CPU5 2.0% used
