@@ -1,0 +1,21 @@
+[submodule "activecheck-reporter-nrpe"]
+	path = activecheck-reporter-nrpe
+	url = git@github.com:frederikhappel/activecheck-reporter-nrpe.git
+[submodule "activecheck-reporter-jmx"]
+	path = activecheck-reporter-jmx
+	url = git@github.com:frederikhappel/activecheck-reporter-jmx.git
+[submodule "activecheck-reporter-mongodb"]
+	path = activecheck-reporter-mongodb
+	url = git@github.com:frederikhappel/activecheck-reporter-mongodb.git
+[submodule "activecheck-collector-nagmq"]
+	path = activecheck-collector-nagmq
+	url = git@github.com:frederikhappel/activecheck-collector-nagmq.git
+[submodule "activecheck-collector-nsca"]
+	path = activecheck-collector-nsca
+	url = git@github.com:frederikhappel/activecheck-collector-nsca.git
+[submodule "activecheck-collector-graphite"]
+	path = activecheck-collector-graphite
+	url = git@github.com:frederikhappel/activecheck-collector-graphite.git
+[submodule "activecheck-reporter-graylog"]
+	path = activecheck-reporter-graylog
+	url = git@github.com:frederikhappel/activecheck-reporter-graylog.git
