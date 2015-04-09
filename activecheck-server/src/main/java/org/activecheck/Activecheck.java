@@ -95,7 +95,7 @@ public class Activecheck implements Observer {
 			if (selfJarChecksum == null) {
 				selfJarChecksum = md5;
 			} else if (!md5.equals(selfJarChecksum)) {
-				String exitMessage = "Checksum of running JAR does not match cecksum of available JAR. Stopping ActiveCheck";
+				String exitMessage = "Checksum of running JAR does not match checksum of available JAR. Stopping ActiveCheck";
 				logger.info(exitMessage);
 				System.exit(0);
 			}
