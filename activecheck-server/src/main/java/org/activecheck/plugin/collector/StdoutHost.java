@@ -9,7 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class StdoutHost extends ActivecheckCollector {
-	private static final Logger logger = LoggerFactory.getLogger(StdoutHost.class);
+	private static final Logger logger = LoggerFactory
+			.getLogger(StdoutHost.class);
 
 	private static PropertiesConfiguration defaultProperties;
 	static {
@@ -19,12 +20,7 @@ public class StdoutHost extends ActivecheckCollector {
 
 	// dummy constructor
 	public StdoutHost() {
-		super(defaultProperties, ActivecheckCollectorType.REPORTING);
-	}
-
-	@Override
-	public String getPluginName() {
-		return "STDOUT";
+		super(defaultProperties, ActivecheckCollectorType.REPORTING, "STDOUT");
 	}
 
 	@Override

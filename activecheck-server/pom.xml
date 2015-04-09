@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.activecheck</groupId>
     <artifactId>activecheck-parent</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
   </parent>
   <artifactId>activecheck-server</artifactId>
   <name>activecheck-server</name>
@@ -11,7 +11,7 @@
     <dependency>
     	<groupId>org.activecheck</groupId>
     	<artifactId>activecheck-common</artifactId>
-    	<version>1.0.0</version>
+    	<version>RELEASE</version>
     </dependency>
     <dependency>
       <groupId>org.reflections</groupId>
@@ -58,21 +58,6 @@
           <descriptorRefs>
             <descriptorRef>jar-with-dependencies</descriptorRef>
           </descriptorRefs>
-        </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.5.1</version>
-        <configuration>
-          <source>1.7</source>
-          <target>1.7</target>
-        </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-release-plugin</artifactId>
-        <version>2.2.1</version>
-        <configuration>
-          <goals>package</goals>
         </configuration>
       </plugin>
     </plugins>

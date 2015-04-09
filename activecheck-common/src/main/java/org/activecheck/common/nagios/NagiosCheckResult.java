@@ -78,7 +78,8 @@ public class NagiosCheckResult implements Serializable {
 				for (String perfDataRaw : line.trim().split("\\s")) {
 					if (!perfDataRaw.isEmpty()) {
 						try {
-							NagiosPerformanceData perfData = new NagiosPerformanceData(perfDataRaw);
+							NagiosPerformanceData perfData = new NagiosPerformanceData(
+									perfDataRaw);
 							perfData.replace(perfDataReplacements);
 							perfDataList.add(perfData);
 						} catch (NumberFormatException

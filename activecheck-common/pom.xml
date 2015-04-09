@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.activecheck</groupId>
     <artifactId>activecheck-parent</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
   </parent>
   <artifactId>activecheck-common</artifactId>
   <name>activecheck-common</name>

@@ -5,9 +5,12 @@ import org.activecheck.common.plugin.ActivecheckPlugin;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.softee.management.annotation.Description;
+import org.softee.management.annotation.ManagedAttribute;
 
 abstract public class ActivecheckCollector extends ActivecheckPlugin {
-	private static final Logger logger = LoggerFactory.getLogger(ActivecheckCollector.class);
+	private static final Logger logger = LoggerFactory
+			.getLogger(ActivecheckCollector.class);
 
 	public static final int RETRY_INTERVAL_MAX = 60;
 	public static final int RETRY_INTERVAL_DEFAULT = 1;
@@ -21,6 +24,19 @@ abstract public class ActivecheckCollector extends ActivecheckPlugin {
 		this.type = type;
 
 		// initialize what has not been initialized
+		setPluginName("COLLECTOR_" + type + "_"
+				+ this.getClass().getSimpleName().toUpperCase() + "_"
+				+ hashCode());
+		pluginInit();
+	}
+
+	public ActivecheckCollector(PropertiesConfiguration properties,
+			ActivecheckCollectorType type, String pluginNameSuffix) {
+		super(properties);
+		this.type = type;
+
+		// initialize what has not been initialized
+		setPluginName("COLLECTOR_" + type + "_" + pluginNameSuffix);
 		pluginInit();
 	}
 
@@ -30,11 +46,8 @@ abstract public class ActivecheckCollector extends ActivecheckPlugin {
 		host.setPort(properties.getInteger("port", 0));
 	}
 
-	@Override
-	public String getPluginName() {
-		return type + "_" + this.getClass().getSimpleName().toUpperCase() + "_" + this.hashCode();
-	}
-
+	@ManagedAttribute
+	@Description("Connection URL")
 	public String getCollectorEndpointName() {
 		return host.getUrl();
 	};
@@ -49,7 +62,8 @@ abstract public class ActivecheckCollector extends ActivecheckPlugin {
 			if (!graphNagiosStatus && !graphPerfData) {
 				logger.info("nothing should be graphed");
 			} else if (!report.hasChanged()) {
-				logger.debug("Not sending metrics for the unchanged service '" + serviceName + "'");
+				logger.debug("Not sending metrics for the unchanged service '"
+						+ serviceName + "'");
 			} else if (serviceName == null || serviceName.isEmpty()) {
 				logger.debug("Not sending metrics for an unnamed service");
 			} else {
@@ -60,7 +74,8 @@ abstract public class ActivecheckCollector extends ActivecheckPlugin {
 		case REPORTING:
 			boolean reportResults = report.getRouting().doReportResults();
 			if (!reportResults) {
-				logger.info("check results should not be submitted for service '" + serviceName + "'");
+				logger.info("check results should not be submitted for service '"
+						+ serviceName + "'");
 			} else {
 				sendImpl(report);
 			}

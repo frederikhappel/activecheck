@@ -18,16 +18,19 @@ import org.softee.management.annotation.ManagedOperation;
 @Description("ActivecheckPlugin MBean")
 public abstract class ActivecheckPlugin extends Observable implements
 		ConfigurationListener {
-	private static final Logger logger = LoggerFactory.getLogger(ActivecheckPlugin.class);
+	private static final Logger logger = LoggerFactory
+			.getLogger(ActivecheckPlugin.class);
 
 	// class members
 	protected final PropertiesConfiguration properties;
+	private String pluginName = null;
 	protected long lastReloadTime = System.currentTimeMillis();
 
 	public ActivecheckPlugin(PropertiesConfiguration properties) {
 		Validate.notNull(properties);
 		this.properties = (PropertiesConfiguration) properties.clone();
-		this.properties.setReloadingStrategy(new FileChangedReloadingStrategy());
+		this.properties
+				.setReloadingStrategy(new FileChangedReloadingStrategy());
 		this.properties.addConfigurationListener(this);
 	}
 
@@ -40,7 +43,8 @@ public abstract class ActivecheckPlugin extends Observable implements
 			Object value = newProperties.getProperty(key);
 			if (!properties.containsKey(key)) {
 				properties.addProperty(key, value);
-			} else if (!properties.getString(key).contentEquals(newProperties.getString(key))) {
+			} else if (!properties.getString(key).contentEquals(
+					newProperties.getString(key))) {
 				properties.setProperty(key, value);
 			}
 		}
@@ -52,7 +56,10 @@ public abstract class ActivecheckPlugin extends Observable implements
 
 	@Override
 	public final void configurationChanged(ConfigurationEvent arg0) {
-		logger.debug("Received configuration change '" + arg0.getType() + "' for plugin '" + getPluginName() + "' attribute '" + arg0.getPropertyName() + "' => '" + arg0.getPropertyValue() + "'");
+		logger.debug("Received configuration change '" + arg0.getType()
+				+ "' for plugin '" + getPluginName() + "' attribute '"
+				+ arg0.getPropertyName() + "' => '" + arg0.getPropertyValue()
+				+ "'");
 		reloadConfiguration();
 	}
 
@@ -64,12 +71,27 @@ public abstract class ActivecheckPlugin extends Observable implements
 	@Description("reload plugin configuration from properties")
 	public final void reloadConfiguration() {
 		long currentReloadTime = System.currentTimeMillis();
-		logger.debug("Reloading configuration for plugin '" + getPluginName() + "'");
+		logger.debug("Reloading configuration for plugin '" + getPluginName()
+				+ "'");
 		pluginReload();
 		lastReloadTime = currentReloadTime;
 	}
 
-	abstract protected void pluginReload();
+	public final String getPluginName() {
+		// initialize with a unique name if null
+		if (pluginName == null) {
+			pluginName = this.getClass().getSimpleName() + "_"
+					+ this.hashCode();
+		}
+		return pluginName;
+	}
 
-	abstract public String getPluginName();
+	protected final void setPluginName(String pluginName) {
+		// make sure pluginName cannot change
+		if (this.pluginName == null) {
+			this.pluginName = pluginName;
+		}
+	}
+
+	abstract protected void pluginReload();
 }

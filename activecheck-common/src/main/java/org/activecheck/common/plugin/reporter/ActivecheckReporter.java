@@ -23,7 +23,8 @@ import org.softee.management.annotation.ManagedAttribute;
 public abstract class ActivecheckReporter extends ActivecheckPlugin implements
 		Runnable {
 	// constants
-	private static final Logger logger = LoggerFactory.getLogger(ActivecheckReporter.class);
+	private static final Logger logger = LoggerFactory
+			.getLogger(ActivecheckReporter.class);
 	private static final int DEFAULT_CHECK_INTERVAL = 30;
 
 	// class members
@@ -54,6 +55,7 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements
 		reportRouting = new NagiosServiceReportRouting(properties);
 
 		// initialize what has not been initialized
+		setPluginName("REPORTER_" + overallServiceName);
 		pluginInit();
 	}
 
@@ -76,11 +78,6 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements
 		}
 	}
 
-	@Override
-	public String getPluginName() {
-		return overallServiceName;
-	}
-
 	public final int getScheduleIntervalInSeconds() {
 		return (overallServiceStatus != NagiosServiceStatus.OK) ? retryInterval
 				: checkInterval;
@@ -93,7 +90,8 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements
 			try {
 				if (currentTime - lastReloadTime > destroyAfterSeconds * 1000) {
 					// run cleanup jobs
-					logger.info("Thread died for service '" + overallServiceName + "'");
+					logger.info("Thread died for service '"
+							+ overallServiceName + "'");
 					status = ActivecheckReporterStatus.DEAD;
 					cleanUp();
 				} else {
@@ -112,10 +110,14 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements
 
 						// increase error count
 						errorCount++;
-						logger.debug("error count for service " + overallServiceName + " = " + errorCount);
+						logger.debug("error count for service "
+								+ overallServiceName + " = " + errorCount);
 						if (errorCountMax > 0 && errorCount >= errorCountMax) {
 							status = ActivecheckReporterStatus.REQUESTSHUTDOWN;
-							logger.error("reached max errors of " + errorCountMax + " for service " + overallServiceName + ". Requesting shutdown");
+							logger.error("reached max errors of "
+									+ errorCountMax + " for service "
+									+ overallServiceName
+									+ ". Requesting shutdown");
 						} else {
 							status = ActivecheckReporterStatus.ERROR;
 							logger.error(e.getMessage());
@@ -248,9 +250,8 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements
 		if (sf != null) {
 			sf.cancel(true);
 		}
-		sf = (ScheduledFuture<ActivecheckReporter>) executorService.schedule(this,
-				delay,
-				TimeUnit.MILLISECONDS);
+		sf = (ScheduledFuture<ActivecheckReporter>) executorService.schedule(
+				this, delay, TimeUnit.MILLISECONDS);
 		status = ActivecheckReporterStatus.SCHEDULED;
 		return sf;
 	}
@@ -271,20 +272,23 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements
 			report.setRouting(reportRouting);
 			report.hasChanged(serviceReports.get(reportServiceName));
 			serviceReports.put(reportServiceName, report);
-			logger.info("Service '" + reportServiceName + "': '" + status + " - " + report.getMessage() + "'");
+			logger.info("Service '" + reportServiceName + "': '"
+					+ report.getStatus() + " - " + report.getMessage() + "'");
 		}
 	}
 
 	protected final void setOverallServiceReport(NagiosServiceReport report) {
 		String reportServiceName = report.getServiceName();
 		if (!overallServiceName.equals(reportServiceName)) {
-			logger.error("Cannot use report of '" + reportServiceName + "' for '" + overallServiceName + "'");
+			logger.error("Cannot use report of '" + reportServiceName
+					+ "' for '" + overallServiceName + "'");
 		} else {
 			report.setRouting(reportRouting);
 			report.hasChanged(serviceReports.get(reportServiceName));
 			overallServiceStatus = report.getStatus();
 			serviceReports.put(reportServiceName, report);
-			logger.info("Service '" + reportServiceName + "': '" + status + " - " + reportServiceName + "'");
+			logger.info("Service '" + reportServiceName + "': '"
+					+ overallServiceStatus + " - " + report.getMessage() + "'");
 		}
 	}
 
