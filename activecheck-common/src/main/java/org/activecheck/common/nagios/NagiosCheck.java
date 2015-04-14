@@ -69,7 +69,7 @@ public abstract class NagiosCheck {
 			nagiosPerfData.nextWarning(warningLessThan);
 			nagiosPerfData.nextCritical(criticalLessThan);
 			checkResult.addPerformanceData(nagiosPerfData);
-		} catch (NumberFormatException e) {
+		} catch (NagiosPerformanceDataException e) {
 			// nothing to be done here
 		}
 	}

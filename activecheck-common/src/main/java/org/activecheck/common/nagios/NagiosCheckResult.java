@@ -59,7 +59,7 @@ public class NagiosCheckResult implements Serializable {
 			List<String> perfDataLines = new ArrayList<String>();
 			addMessage(rawParts[0]);
 			if (rawParts.length < 2) {
-				logger.debug("No performance data found");
+				logger.debug("No performance data found: '" + message + "'");
 			} else if (rawParts.length == 2) {
 				for (String line : rawParts[1].split("\\r?\\n")) {
 					perfDataLines.add(line);
@@ -76,17 +76,16 @@ public class NagiosCheckResult implements Serializable {
 			}
 			for (String line : perfDataLines) {
 				for (String perfDataRaw : line.trim().split("\\s")) {
-					if (!perfDataRaw.isEmpty()) {
-						try {
-							NagiosPerformanceData perfData = new NagiosPerformanceData(
-									perfDataRaw);
-							perfData.replace(perfDataReplacements);
-							perfDataList.add(perfData);
-						} catch (NumberFormatException
-								| NagiosPerformanceDataException e) {
-							logger.info(e.getMessage());
-							logger.trace(e.getMessage(), e);
-						}
+					try {
+						NagiosPerformanceData perfData = new NagiosPerformanceData(
+								perfDataRaw);
+						perfData.replace(perfDataReplacements);
+						perfDataList.add(perfData);
+					} catch (NagiosPerformanceDataException e) {
+						String errorMessage = e.getMessage()
+								+ " original message: '" + message + "'";
+						logger.info(errorMessage);
+						logger.trace(errorMessage, e);
 					}
 				}
 			}

@@ -19,7 +19,7 @@ public class NagiosPerformanceData implements Serializable {
 	private boolean isInteger = false;
 
 	public NagiosPerformanceData(String line)
-			throws NagiosPerformanceDataException, NumberFormatException {
+			throws NagiosPerformanceDataException {
 		Validate.notNull(line);
 		// parse string
 		// <name>=<current>;<warning>;<critical>;<minimum>;<maximum>
@@ -30,40 +30,41 @@ public class NagiosPerformanceData implements Serializable {
 		String[] perfDataFields = line.split(";");
 		if (perfDataFields.length < 1) {
 			throw new NagiosPerformanceDataException(
-					"received invalid performance data line: " + line);
+					"received invalid performance data line: '" + line + "'");
 		}
 		String[] nameAndValue = perfDataFields[0].split("=");
 		if (nameAndValue.length != 2) {
 			throw new NagiosPerformanceDataException(
-					"received invalid performance data line: " + line);
+					"received invalid performance data line: '" + line + "'");
 		}
 		name = nameAndValue[0];
-		current = parseValue(nameAndValue[1]);
+		current = parseValue(nameAndValue[1], false);
 		if (perfDataFields.length > 1) {
-			warning = parseValue(perfDataFields[1]);
+			warning = parseValue(perfDataFields[1], true);
 		}
 		if (perfDataFields.length > 2) {
-			critical = parseValue(perfDataFields[2]);
+			critical = parseValue(perfDataFields[2], true);
 		}
 		if (perfDataFields.length > 3) {
-			minimum = parseValue(perfDataFields[3]);
+			minimum = parseValue(perfDataFields[3], true);
 		}
 		if (perfDataFields.length > 4) {
-			maximum = parseValue(perfDataFields[4]);
+			maximum = parseValue(perfDataFields[4], true);
 		}
 	}
 
 	public NagiosPerformanceData(String name, Object current, String warning,
 			String critical, String minimum, String maximum)
-			throws NumberFormatException {
+			throws NagiosPerformanceDataException {
 		Validate.notNull(name);
 		Validate.notNull(current);
 		this.name = name;
-		this.current = parseValue(current);
-		this.critical = parseValue(critical);
-		this.warning = (warning == null) ? this.critical : parseValue(warning);
-		this.minimum = parseValue(minimum);
-		this.maximum = parseValue(maximum);
+		this.current = parseValue(current, false);
+		this.critical = parseValue(critical, true);
+		this.warning = (warning == null) ? this.critical : parseValue(warning,
+				true);
+		this.minimum = parseValue(minimum, true);
+		this.maximum = parseValue(maximum, true);
 		isInteger = current instanceof Integer;
 	}
 
@@ -98,15 +99,24 @@ public class NagiosPerformanceData implements Serializable {
 		}
 	}
 
-	private Double parseValue(Object value) throws NumberFormatException {
-		if (value == null) {
-			return DEFAULT_VALUE;
-		} else if (value instanceof Number) {
-			return ((Number) value).doubleValue();
-		} else {
-			return Double.parseDouble(value.toString().replaceAll("[^\\d,]*$",
-					""));
+	private Double parseValue(Object value, boolean defaultOnException)
+			throws NagiosPerformanceDataException {
+		if (value != null) {
+			try {
+				if (value instanceof Number) {
+					return ((Number) value).doubleValue();
+				} else {
+					return Double.parseDouble(value.toString().replaceAll(
+							"[^\\d,]*$", ""));
+				}
+			} catch (NumberFormatException e) {
+				if (!defaultOnException) {
+					throw new NagiosPerformanceDataException(
+							"cannot parse value: '" + value.toString() + "'");
+				}
+			}
 		}
+		return DEFAULT_VALUE;
 	}
 
 	public String getName() {
