@@ -1,14 +1,14 @@
 package org.activecheck.plugin.collector;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.activecheck.common.nagios.NagiosServiceReport;
 import org.activecheck.common.plugin.collector.ActivecheckCollector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ActivecheckPacketProcessor {
 	private static final Logger logger = LoggerFactory
@@ -18,7 +18,7 @@ public class ActivecheckPacketProcessor {
 	private final Set<String> cleanupCollectorHosts;
 
 	public ActivecheckPacketProcessor() {
-		activecheckCollectorHosts = new HashMap<String, ActivecheckCollector>();
+		activecheckCollectorHosts = new ConcurrentHashMap<String, ActivecheckCollector>();
 		configuredCollectorHosts = new HashSet<String>();
 		cleanupCollectorHosts = new HashSet<String>();
 	}
@@ -32,7 +32,7 @@ public class ActivecheckPacketProcessor {
 			activecheckCollectorHosts.put(collectorName, activecheckCollector);
 		}
 	}
-	
+
 	public void process(NagiosServiceReport report) {
 		for (ActivecheckCollector activecheckCollectorHost : activecheckCollectorHosts
 				.values()) {

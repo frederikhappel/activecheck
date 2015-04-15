@@ -9,9 +9,9 @@
   <name>activecheck-server</name>
   <dependencies>
     <dependency>
-    	<groupId>org.activecheck</groupId>
-    	<artifactId>activecheck-common</artifactId>
-    	<version>RELEASE</version>
+      <groupId>org.activecheck</groupId>
+      <artifactId>activecheck-common</artifactId>
+      <version>RELEASE</version>
     </dependency>
     <dependency>
       <groupId>org.reflections</groupId>

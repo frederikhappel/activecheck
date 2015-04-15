@@ -8,10 +8,10 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Observer;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.activecheck.ActivecheckConfiguration;
 import org.activecheck.common.plugin.ActivecheckPlugin;
@@ -22,7 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ActivecheckPluginFactory {
-	private static final Logger logger = LoggerFactory.getLogger(ActivecheckPluginFactory.class);
+	private static final Logger logger = LoggerFactory
+			.getLogger(ActivecheckPluginFactory.class);
 
 	private static final String JMX_OBJECT_DOMAIN = "org.activecheck:type=Plugins";
 
@@ -30,7 +31,7 @@ public class ActivecheckPluginFactory {
 	private URLClassLoader urlClassLoader = null;
 
 	public ActivecheckPluginFactory() {
-		activecheckPlugins = new HashMap<String, ActivecheckPlugin>();
+		activecheckPlugins = new ConcurrentHashMap<String, ActivecheckPlugin>();
 	}
 
 	public void setPluginDir(String rawPluginDir) {
@@ -54,9 +55,10 @@ public class ActivecheckPluginFactory {
 		}
 
 		// create plugin class loader
-		ClassLoader currentThreadClassLoader = Thread.currentThread().getContextClassLoader();
-		urlClassLoader = URLClassLoader.newInstance(pluginURLs.toArray(new URL[] {}),
-				currentThreadClassLoader);
+		ClassLoader currentThreadClassLoader = Thread.currentThread()
+				.getContextClassLoader();
+		urlClassLoader = URLClassLoader.newInstance(
+				pluginURLs.toArray(new URL[] {}), currentThreadClassLoader);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -72,7 +74,8 @@ public class ActivecheckPluginFactory {
 		}
 
 		String classname = pluginProperties.getString("class", null);
-		ActivecheckPlugin activecheckPlugin = activecheckPlugins.get(configFile.getPath());
+		ActivecheckPlugin activecheckPlugin = activecheckPlugins.get(configFile
+				.getPath());
 
 		// determine plugin class name
 		Class<? extends ActivecheckPlugin> pluginClass;
@@ -80,7 +83,8 @@ public class ActivecheckPluginFactory {
 			pluginClass = activecheckPlugin.getClass();
 		} else {
 			try {
-				pluginClass = (Class<? extends ActivecheckPlugin>) urlClassLoader.loadClass(classname);
+				pluginClass = (Class<? extends ActivecheckPlugin>) urlClassLoader
+						.loadClass(classname);
 			} catch (ClassNotFoundException e) {
 				throw new ActivecheckPluginFactoryException(
 						"Unknown plugin class '" + classname + "'");
@@ -88,12 +92,14 @@ public class ActivecheckPluginFactory {
 		}
 
 		// merge properties
-		ActivecheckPluginProperties reporterProperties = pluginClass.getAnnotation(ActivecheckPluginProperties.class);
+		ActivecheckPluginProperties reporterProperties = pluginClass
+				.getAnnotation(ActivecheckPluginProperties.class);
 		if (reporterProperties != null) {
 			pluginProperties = configuration.mergeWith(pluginProperties,
 					Arrays.asList(reporterProperties.propertiesToMerge()));
 		} else {
-			logger.error("ActivecheckPluginProperties annotation missing for " + pluginClass);
+			logger.error("ActivecheckPluginProperties annotation missing for "
+					+ pluginClass);
 		}
 
 		// set properties
@@ -101,15 +107,18 @@ public class ActivecheckPluginFactory {
 			activecheckPlugin.setProperties(pluginProperties);
 		} else {
 			try {
-				Constructor<? extends ActivecheckPlugin> constructor = pluginClass.getConstructor(new Class[] { PropertiesConfiguration.class });
+				Constructor<? extends ActivecheckPlugin> constructor = pluginClass
+						.getConstructor(new Class[] { PropertiesConfiguration.class });
 				activecheckPlugin = constructor.newInstance(pluginProperties);
 			} catch (NoSuchMethodException | SecurityException
 					| InstantiationException | IllegalAccessException
 					| IllegalArgumentException e) {
-				logger.error("Unable to instantiate plugin for class '" + classname + "'");
+				logger.error("Unable to instantiate plugin for class '"
+						+ classname + "'");
 				throw new ActivecheckPluginFactoryException(e);
 			} catch (InvocationTargetException e) {
-				logger.error("Unable to instantiate plugin for class '" + classname + "'");
+				logger.error("Unable to instantiate plugin for class '"
+						+ classname + "'");
 				throw new ActivecheckPluginFactoryException(e.getCause());
 			}
 			activecheckPlugins.put(configFile.getPath(), activecheckPlugin);
@@ -118,8 +127,7 @@ public class ActivecheckPluginFactory {
 			// add to jmx
 			String pluginName = activecheckPlugin.getPluginName();
 			MBeanRegistrationFactory.getInstance().register(JMX_OBJECT_DOMAIN,
-					pluginName,
-					activecheckPlugin);
+					pluginName, activecheckPlugin);
 		}
 
 		// remove disabled plugin
@@ -131,8 +139,8 @@ public class ActivecheckPluginFactory {
 			activecheckPlugins.remove(configFile.getPath());
 
 			// remove from jmx
-			MBeanRegistrationFactory.getInstance().unregister(JMX_OBJECT_DOMAIN,
-					pluginName);
+			MBeanRegistrationFactory.getInstance().unregister(
+					JMX_OBJECT_DOMAIN, pluginName);
 		}
 
 		return activecheckPlugin;

@@ -1,7 +1,7 @@
 package org.activecheck.plugin;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.management.ObjectName;
 
@@ -16,7 +16,7 @@ public class MBeanRegistrationFactory {
 	private final Map<String, MBeanRegistration> registeredMBeans;
 
 	public MBeanRegistrationFactory() {
-		registeredMBeans = new HashMap<String, MBeanRegistration>();
+		registeredMBeans = new ConcurrentHashMap<String, MBeanRegistration>();
 	}
 
 	public static MBeanRegistrationFactory getInstance() {
