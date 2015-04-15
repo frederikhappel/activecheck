@@ -5,6 +5,19 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
+  <organization>
+    <url>http://activecheck.frederikhappel.de</url>
+    <name>Activecheck</name>
+  </organization>
+  <groupId>org.activecheck</groupId>
+  <artifactId>activecheck-parent</artifactId>
+  <version>1.0.2</version>
+  <name>Activecheck</name>
+  <url>http://activecheck.frederikhappel.de</url>
+  <modules>
+    <module>activecheck-server</module>
+    <module>activecheck-common</module>
+  </modules>
   <build>
     <plugins>
       <plugin>
@@ -35,24 +48,4 @@
       </plugin>
     </plugins>
   </build>
-  <organization>
-    <url>http://activecheck.frederikhappel.de</url>
-    <name>Activecheck</name>
-  </organization>
-  <groupId>org.activecheck</groupId>
-  <artifactId>activecheck-parent</artifactId>
-  <version>1.0.2</version>
-  <name>Activecheck</name>
-  <url>http://activecheck.frederikhappel.de</url>
-  <modules>
-    <module>activecheck-server</module>
-    <module>activecheck-common</module>
-    <module>activecheck-reporter-nrpe</module>
-    <module>activecheck-reporter-jmx</module>
-    <module>activecheck-reporter-mongodb</module>
-    <module>activecheck-reporter-graylog</module>
-    <module>activecheck-collector-nagmq</module>
-    <module>activecheck-collector-graphite</module>
-    <module>activecheck-collector-nsca</module>
-  </modules>
 </project>
