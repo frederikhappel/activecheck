@@ -7,8 +7,6 @@ import java.io.InputStream;
 import java.util.Collection;
 import java.util.Iterator;
 
-import org.activecheck.common.nagios.NagiosCheckResult;
-import org.activecheck.common.nagios.NagiosPerformanceData;
 import org.testng.annotations.Test;
 import org.testng.reporters.Files;
 
@@ -20,7 +18,7 @@ public class NagiosCheckResultTest {
 		String message = Files.readFile(is);
 
 		NagiosCheckResult checkResult = NagiosCheckResult.fromMessage(message);
-		assertEquals(checkResult.getPerfData().size(), 70);
+		assertEquals(checkResult.getPerfData().size(), 330);
 	}
 
 	@Test(description = "Test check_load output")
@@ -194,9 +192,13 @@ public class NagiosCheckResultTest {
 		NagiosCheckResult checkResult = new NagiosCheckResult();
 		checkResult.addPerfDataReplacement("_", ".");
 		checkResult.parseMessage(message);
-		assertEquals(checkResult.getPerfData().get(0).getName(), "perfdata.line1");
-		assertEquals(checkResult.getPerfData().get(1).getName(), "perfdata.line2");
-		assertEquals(checkResult.getPerfData().get(2).getName(), "perfdata.line3");
-		assertEquals(checkResult.getPerfData().get(3).getName(), "perfdata.line4");
+		assertEquals(checkResult.getPerfData().get(0).getName(),
+				"perfdata.line1");
+		assertEquals(checkResult.getPerfData().get(1).getName(),
+				"perfdata.line2");
+		assertEquals(checkResult.getPerfData().get(2).getName(),
+				"perfdata.line3");
+		assertEquals(checkResult.getPerfData().get(3).getName(),
+				"perfdata.line4");
 	}
 }
