@@ -1,5 +1,6 @@
 package org.activecheck.common.plugin;
 
+import java.util.Date;
 import java.util.Iterator;
 import java.util.Observable;
 
@@ -12,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.softee.management.annotation.Description;
 import org.softee.management.annotation.MBean;
+import org.softee.management.annotation.ManagedAttribute;
 import org.softee.management.annotation.ManagedOperation;
 
 @MBean
@@ -75,6 +77,22 @@ public abstract class ActivecheckPlugin extends Observable implements
 				+ "'");
 		pluginReload();
 		lastReloadTime = currentReloadTime;
+	}
+
+	@ManagedAttribute
+	@Description("last configuration reload time")
+	public final String getConfigurationReloadTime() {
+		if (lastReloadTime > 0) {
+			return new Date(lastReloadTime).toString();
+		} else {
+			return "NEVER";
+		}
+	}
+
+	@ManagedAttribute
+	@Description("Configuration file")
+	public final String getConfigFile() {
+		return properties.getFileName();
 	}
 
 	public final String getPluginName() {

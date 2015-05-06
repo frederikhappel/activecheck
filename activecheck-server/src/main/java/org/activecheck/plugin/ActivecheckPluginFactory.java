@@ -67,6 +67,7 @@ public class ActivecheckPluginFactory {
 			throws ActivecheckPluginFactoryException, ConfigurationException {
 		PropertiesConfiguration pluginProperties = new PropertiesConfiguration(
 				configFile);
+		pluginProperties.setFile(configFile);
 
 		// create plugin class loader
 		if (urlClassLoader == null) {
@@ -92,11 +93,11 @@ public class ActivecheckPluginFactory {
 		}
 
 		// merge properties
-		ActivecheckPluginProperties reporterProperties = pluginClass
+		ActivecheckPluginProperties activecheckPluginProperties = pluginClass
 				.getAnnotation(ActivecheckPluginProperties.class);
-		if (reporterProperties != null) {
-			pluginProperties = configuration.mergeWith(pluginProperties,
-					Arrays.asList(reporterProperties.propertiesToMerge()));
+		if (activecheckPluginProperties != null) {
+			pluginProperties = configuration.mergeWith(pluginProperties, Arrays
+					.asList(activecheckPluginProperties.propertiesToMerge()));
 		} else {
 			logger.error("ActivecheckPluginProperties annotation missing for "
 					+ pluginClass);

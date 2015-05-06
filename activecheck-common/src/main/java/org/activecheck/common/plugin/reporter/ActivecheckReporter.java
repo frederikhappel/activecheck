@@ -190,16 +190,6 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements
 	}
 
 	@ManagedAttribute
-	@Description("last configuration reload time")
-	public final String getConfigurationReloadTime() {
-		if (lastReloadTime > 0) {
-			return new Date(lastReloadTime).toString();
-		} else {
-			return "NEVER";
-		}
-	}
-
-	@ManagedAttribute
 	@Description("last run time")
 	public final String getLastRunTime() {
 		if (lastRunTime > 0) {
@@ -235,12 +225,6 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements
 		return lastScheduleDelay;
 	}
 
-	@ManagedAttribute
-	@Description("Nagios service configuration file")
-	public final String getConfigFile() {
-		return properties.getFileName();
-	}
-
 	@SuppressWarnings("unchecked")
 	public final ScheduledFuture<ActivecheckReporter> schedule(
 			ScheduledThreadPoolExecutor executorService, long delay) {
@@ -260,6 +244,8 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements
 		return sf;
 	}
 
+	@ManagedAttribute
+	@Description("get all reports")
 	public final Collection<NagiosServiceReport> getReports() {
 		return serviceReports.values();
 	}
