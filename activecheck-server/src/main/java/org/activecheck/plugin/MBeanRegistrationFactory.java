@@ -1,62 +1,60 @@
 package org.activecheck.plugin;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.lang.management.ManagementFactory;
 
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.InstanceNotFoundException;
+import javax.management.MBeanRegistrationException;
+import javax.management.MBeanServer;
+import javax.management.MalformedObjectNameException;
+import javax.management.NotCompliantMBeanException;
 import javax.management.ObjectName;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.softee.management.helper.MBeanRegistration;
 
 public class MBeanRegistrationFactory {
 	private static final Logger logger = LoggerFactory
 			.getLogger(MBeanRegistrationFactory.class);
 	private static final MBeanRegistrationFactory instance = new MBeanRegistrationFactory();
-	private final Map<String, MBeanRegistration> registeredMBeans;
-
-	public MBeanRegistrationFactory() {
-		registeredMBeans = new ConcurrentHashMap<String, MBeanRegistration>();
-	}
+	private final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
 
 	public static MBeanRegistrationFactory getInstance() {
 		return instance;
 	}
 
 	public void register(String domain, String name, Object mbean) {
-		ObjectName jmxObjectName;
 		String jmxName = domain + "," + "name=" + name.replaceAll(":", "_");
-		MBeanRegistration registration = registeredMBeans.get(jmxName);
-		if (registration == null) {
+		try {
+			ObjectName jmxObjectName = new ObjectName(jmxName);
 			try {
-				jmxObjectName = new ObjectName(jmxName);
-				registration = new MBeanRegistration(mbean, jmxObjectName);
-				registeredMBeans.put(jmxName, registration);
-				registration.register();
-			} catch (Exception e) {
-				logger.error("Registering MBean '" + jmxName + "' failed: "
-						+ e.getMessage());
-				logger.trace(e.getMessage(), e);
+				mbs.getObjectInstance(jmxObjectName);
+				logger.warn("MBean already registered '" + jmxName + "'");
+			} catch (InstanceNotFoundException e1) {
+				mbs.registerMBean(mbean, jmxObjectName);
 			}
-		} else {
-			logger.warn("MBean already registered '" + jmxName + "'");
+		} catch (InstanceAlreadyExistsException | MBeanRegistrationException
+				| NotCompliantMBeanException | MalformedObjectNameException e) {
+			logger.error("Registering MBean '" + jmxName + "' failed: "
+					+ e.getMessage());
+			logger.trace(e.getMessage(), e);
 		}
 	}
 
 	public void unregister(String domain, String name) {
 		String jmxName = domain + "," + "name=" + name.replaceAll(":", "_");
-		MBeanRegistration registration = registeredMBeans.get(jmxName);
-		if (registration != null) {
+		try {
+			ObjectName jmxObjectName = new ObjectName(jmxName);
 			try {
-				registration.unregister();
-				registeredMBeans.remove(jmxName);
-			} catch (Exception e) {
-				logger.error("Unregistering MBean '" + jmxName + "' failed: "
-						+ e.getMessage());
-				logger.trace(e.getMessage(), e);
+				mbs.unregisterMBean(jmxObjectName);
+			} catch (InstanceNotFoundException e1) {
+				logger.warn("Trying to unregister unknown MBean '" + jmxName
+						+ "'");
 			}
-		} else {
-			logger.warn("Trying to unregister unknown MBean '" + jmxName + "'");
+		} catch (MBeanRegistrationException | MalformedObjectNameException e) {
+			logger.error("Unregistering MBean '" + jmxName + "' failed: "
+					+ e.getMessage());
+			logger.trace(e.getMessage(), e);
 		}
 	}
 }

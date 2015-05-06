@@ -17,11 +17,9 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.softee.management.annotation.Description;
-import org.softee.management.annotation.ManagedAttribute;
 
 public abstract class ActivecheckReporter extends ActivecheckPlugin implements
-		Runnable {
+		Runnable, ActivecheckReporterMBean {
 	// constants
 	private static final Logger logger = LoggerFactory
 			.getLogger(ActivecheckReporter.class);
@@ -139,8 +137,6 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements
 		}
 	}
 
-	@ManagedAttribute
-	@Description("destroy reporter after specified time in seconds")
 	public final int getDestroyAfterSeconds() {
 		return destroyAfterSeconds;
 	}
@@ -149,20 +145,14 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements
 		this.destroyAfterSeconds = destroyAfterSeconds;
 	}
 
-	@ManagedAttribute
-	@Description("Nagios service name")
 	public final String getOverallServiceName() {
 		return overallServiceName;
 	}
 
-	@ManagedAttribute
-	@Description("Nagios service host")
 	public final String getOverallServiceHost() {
 		return overallServiceHost;
 	}
 
-	@ManagedAttribute
-	@Description("Nagios service status")
 	public final String getOverallServiceStatus() {
 		return overallServiceStatus.toString();
 	}
@@ -171,26 +161,18 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements
 		return status;
 	}
 
-	@ManagedAttribute
-	@Description("Nagios reporter status")
 	public final String getNagiosReporterStatus() {
 		return status.toString();
 	}
 
-	@ManagedAttribute
-	@Description("Nagios check interval")
 	public final int getCheckInterval() {
 		return checkInterval;
 	}
 
-	@ManagedAttribute
-	@Description("Nagios retry interval")
 	public final int getRetryInterval() {
 		return retryInterval;
 	}
 
-	@ManagedAttribute
-	@Description("last run time")
 	public final String getLastRunTime() {
 		if (lastRunTime > 0) {
 			return new Date(lastRunTime).toString();
@@ -203,14 +185,10 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements
 		return lastRunTime;
 	}
 
-	@ManagedAttribute
-	@Description("execution time in milliseconds")
 	public final long getExecutionTimeMillis() {
 		return executionTime;
 	}
 
-	@ManagedAttribute
-	@Description("last schedule time")
 	public final String getLastScheduleTime() {
 		if (lastScheduleTime > 0) {
 			return new Date(lastScheduleTime).toString();
@@ -219,8 +197,6 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements
 		}
 	}
 
-	@ManagedAttribute
-	@Description("last schedule delay in milliseconds")
 	public final long getLastScheduleDelayMillis() {
 		return lastScheduleDelay;
 	}
@@ -244,8 +220,6 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements
 		return sf;
 	}
 
-	@ManagedAttribute
-	@Description("get all reports")
 	public final Collection<NagiosServiceReport> getReports() {
 		return serviceReports.values();
 	}
@@ -306,8 +280,6 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements
 	}
 
 	abstract protected void reporterInit();
-
-	protected abstract void runCommand() throws ActivecheckReporterException;
 
 	protected abstract void cleanUp();
 }

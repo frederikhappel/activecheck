@@ -11,15 +11,9 @@ import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
 import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.softee.management.annotation.Description;
-import org.softee.management.annotation.MBean;
-import org.softee.management.annotation.ManagedAttribute;
-import org.softee.management.annotation.ManagedOperation;
 
-@MBean
-@Description("ActivecheckPlugin MBean")
 public abstract class ActivecheckPlugin extends Observable implements
-		ConfigurationListener {
+		ConfigurationListener, ActivecheckPluginMBean {
 	private static final Logger logger = LoggerFactory
 			.getLogger(ActivecheckPlugin.class);
 
@@ -69,8 +63,6 @@ public abstract class ActivecheckPlugin extends Observable implements
 		return properties.getBoolean("enabled", true);
 	}
 
-	@ManagedOperation
-	@Description("reload plugin configuration from properties")
 	public final void reloadConfiguration() {
 		long currentReloadTime = System.currentTimeMillis();
 		logger.debug("Reloading configuration for plugin '" + getPluginName()
@@ -79,8 +71,6 @@ public abstract class ActivecheckPlugin extends Observable implements
 		lastReloadTime = currentReloadTime;
 	}
 
-	@ManagedAttribute
-	@Description("last configuration reload time")
 	public final String getConfigurationReloadTime() {
 		if (lastReloadTime > 0) {
 			return new Date(lastReloadTime).toString();
@@ -89,8 +79,6 @@ public abstract class ActivecheckPlugin extends Observable implements
 		}
 	}
 
-	@ManagedAttribute
-	@Description("Configuration file")
 	public final String getConfigFile() {
 		return properties.getFileName();
 	}

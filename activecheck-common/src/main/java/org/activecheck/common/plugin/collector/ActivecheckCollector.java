@@ -5,10 +5,9 @@ import org.activecheck.common.plugin.ActivecheckPlugin;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.softee.management.annotation.Description;
-import org.softee.management.annotation.ManagedAttribute;
 
-abstract public class ActivecheckCollector extends ActivecheckPlugin {
+abstract public class ActivecheckCollector extends ActivecheckPlugin implements
+		ActivecheckCollectorMBean {
 	private static final Logger logger = LoggerFactory
 			.getLogger(ActivecheckCollector.class);
 
@@ -46,8 +45,6 @@ abstract public class ActivecheckCollector extends ActivecheckPlugin {
 		host.setPort(properties.getInteger("port", 0));
 	}
 
-	@ManagedAttribute
-	@Description("Connection URL")
 	public String getCollectorEndpointName() {
 		return host.getUrl();
 	};
