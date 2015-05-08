@@ -1,14 +1,17 @@
 package org.activecheck.common.plugin.reporter;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.activecheck.common.nagios.NagiosCheckResult;
+import org.activecheck.common.nagios.NagiosPerformanceData;
 import org.activecheck.common.nagios.NagiosServiceReport;
 import org.activecheck.common.nagios.NagiosServiceReportRouting;
 import org.activecheck.common.nagios.NagiosServiceStatus;
@@ -222,6 +225,16 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements
 
 	public final Collection<NagiosServiceReport> getReports() {
 		return serviceReports.values();
+	}
+
+	public final List<String> getPerformanceData() {
+		List<String> perfDataLines = new ArrayList<String>();
+		for (NagiosServiceReport report : serviceReports.values()) {
+			for (NagiosPerformanceData perfData : report.getPerfData()) {
+				perfDataLines.add(perfData.getLine());
+			}
+		}
+		return perfDataLines;
 	}
 
 	protected final void addServiceReport(NagiosServiceReport report) {

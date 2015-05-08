@@ -1,8 +1,6 @@
 package org.activecheck.common.plugin.reporter;
 
-import java.util.Collection;
-
-import org.activecheck.common.nagios.NagiosServiceReport;
+import java.util.List;
 
 public interface ActivecheckReporterMBean {
 	// @Description("rerun checks")
@@ -50,6 +48,6 @@ public interface ActivecheckReporterMBean {
 	// @Description("last schedule delay in milliseconds")
 	public long getLastScheduleDelayMillis();
 
-	// @Description("get all reports")
-	public Collection<NagiosServiceReport> getReports();
+	// @Description("get all performance data lines")
+	public List<String> getPerformanceData();
 }
