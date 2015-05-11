@@ -109,9 +109,6 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements
 						// clear error count
 						errorCount = 0;
 						status = ActivecheckReporterStatus.REQUEUE;
-
-						// run fixit command
-						fixit();
 					} catch (ActivecheckReporterException e) {
 						setOverallServiceReport(NagiosServiceStatus.CRITICAL,
 								e.getMessage());

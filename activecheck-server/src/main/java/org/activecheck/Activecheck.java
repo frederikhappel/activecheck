@@ -42,8 +42,10 @@ import com.beust.jcommander.JCommander;
  * @author Frederik Happel mail@frederikhappel.de
  */
 public class Activecheck implements Observer {
-	private static final Logger logger = LoggerFactory.getLogger(Activecheck.class);
-	private static final String VERSION = Activecheck.class.getPackage().getImplementationVersion();
+	private static final Logger logger = LoggerFactory
+			.getLogger(Activecheck.class);
+	private static final String VERSION = Activecheck.class.getPackage()
+			.getImplementationVersion();
 
 	private String selfJarChecksum = null;
 	private boolean killOnChecksumMismatch = true;
@@ -70,7 +72,8 @@ public class Activecheck implements Observer {
 		try {
 			configuration = new ActivecheckConfiguration(cfgfile);
 		} catch (ConfigurationException e) {
-			String errorMessage = "Error creating configuration object '" + cfgfile + "': " + e.getMessage();
+			String errorMessage = "Error creating configuration object '"
+					+ cfgfile + "': " + e.getMessage();
 			logger.error(errorMessage);
 			logger.trace(e.getMessage(), e);
 			System.exit(1);
@@ -88,9 +91,9 @@ public class Activecheck implements Observer {
 
 	private void calculateSelfMD5Hash() {
 		try {
-			InputStream is = new FileInputStream(
-					new File(
-							Activecheck.class.getProtectionDomain().getCodeSource().getLocation().toURI()));
+			InputStream is = new FileInputStream(new File(Activecheck.class
+					.getProtectionDomain().getCodeSource().getLocation()
+					.toURI()));
 			String md5 = DigestUtils.md5Hex(is);
 			if (selfJarChecksum == null) {
 				selfJarChecksum = md5;
@@ -103,7 +106,8 @@ public class Activecheck implements Observer {
 			// to avoid that this exception occurs again, set
 			// killOnChecksumMismatch = false
 			killOnChecksumMismatch = false;
-			logger.warn("Cannot kill self on checksum mismatch: " + e.getMessage());
+			logger.warn("Cannot kill self on checksum mismatch: "
+					+ e.getMessage());
 			logger.trace(e.getMessage(), e);
 		}
 	}
@@ -126,7 +130,8 @@ public class Activecheck implements Observer {
 				logger.debug("Monitoring of JAR file is disabled");
 			}
 
-			String[] pid_parts = ManagementFactory.getRuntimeMXBean().getName().split("@");
+			String[] pid_parts = ManagementFactory.getRuntimeMXBean().getName()
+					.split("@");
 			BufferedWriter writer = null;
 			try {
 				writer = new BufferedWriter(new OutputStreamWriter(
@@ -134,7 +139,8 @@ public class Activecheck implements Observer {
 				writer.write(pid_parts[0]);
 				writer.close();
 			} catch (IOException e) {
-				String errorMessage = "Unable to write pidfile '" + pidfile + "': " + e.getMessage();
+				String errorMessage = "Unable to write pidfile '" + pidfile
+						+ "': " + e.getMessage();
 				logger.error(errorMessage);
 				logger.trace(e.getMessage(), e);
 				System.exit(1);
@@ -154,22 +160,25 @@ public class Activecheck implements Observer {
 			logger.debug("Including configuration in file " + configFile);
 			try {
 				// load properties from file
-				ActivecheckPlugin activecheckPlugin = pluginFactory.createPlugin(configFile,
-						configuration,
-						this);
+				ActivecheckPlugin activecheckPlugin = pluginFactory
+						.createPlugin(configFile, configuration, this);
 
 				// determine if collector or reporter
 				if (activecheckPlugin instanceof ActivecheckReporter) {
 					// update or create NagiosReporter and thread
-					reporterScheduler.addOrUpdateReporter((ActivecheckReporter) activecheckPlugin,
+					reporterScheduler.addOrUpdateReporter(
+							(ActivecheckReporter) activecheckPlugin,
 							reloadInterval);
 				} else if (activecheckPlugin instanceof ActivecheckCollector) {
-					activecheckPacketProcessor.addOrUpdateCollector((ActivecheckCollector) activecheckPlugin);
+					activecheckPacketProcessor
+							.addOrUpdateCollector((ActivecheckCollector) activecheckPlugin);
 				} else {
-					logger.error("unknown plugin type '" + activecheckPlugin.getClass() + "'");
+					logger.error("unknown plugin type '"
+							+ activecheckPlugin.getClass() + "'");
 				}
 			} catch (Exception e) {
-				logger.error("Cannot create plugin defined in '" + configFile + "': " + e.getMessage());
+				logger.error("Cannot create plugin defined in '" + configFile
+						+ "': " + e.getMessage());
 				logger.debug(e.getMessage(), e);
 			}
 		}
@@ -181,7 +190,8 @@ public class Activecheck implements Observer {
 		if (arg0 instanceof ActivecheckReporter) {
 			ActivecheckReporter nagiosReporter = (ActivecheckReporter) arg0;
 			long startTime = nagiosReporter.getLastRunTimeMillis();
-			long finishTime = startTime + nagiosReporter.getExecutionTimeMillis();
+			long finishTime = startTime
+					+ nagiosReporter.getExecutionTimeMillis();
 
 			for (NagiosServiceReport report : nagiosReporter.getReports()) {
 				// send report to configured hosts
@@ -191,7 +201,8 @@ public class Activecheck implements Observer {
 				activecheckPacketProcessor.process(report);
 			}
 			if (nagiosReporter.getStatus() == ActivecheckReporterStatus.REQUESTSHUTDOWN) {
-				String errorMessage = "Shutdown due to request from " + nagiosReporter.getOverallServiceName();
+				String errorMessage = "Shutdown due to request from "
+						+ nagiosReporter.getOverallServiceName();
 				logger.error(errorMessage);
 				System.exit(1);
 			}
@@ -214,7 +225,8 @@ public class Activecheck implements Observer {
 						bindPort);
 				activecheckServer.addObserver(this);
 			} catch (IOException e) {
-				String errorMessage = "Unable to create a server socket at 127.0.0.1:" + bindPort;
+				String errorMessage = "Unable to create a server socket at 127.0.0.1:"
+						+ bindPort;
 				logger.error(errorMessage);
 				logger.trace(e.getMessage(), e);
 				System.exit(1);
@@ -248,10 +260,12 @@ public class Activecheck implements Observer {
 			if (hostCheckInterval * 1000 - diffMillis <= 1000) {
 				lastHostCheckMillis = time;
 				// send host up notification
-				logger.debug("Last host check " + diffMillis + " milliseconds ago");
+				logger.debug("Last host check " + diffMillis
+						+ " milliseconds ago");
 				long currentTime = System.currentTimeMillis();
 				long uptime = ManagementFactory.getRuntimeMXBean().getUptime() / 1000;
-				String message = "Uptime " + uptime + " seconds\nActivecheck version " + VERSION;
+				String message = "Uptime " + uptime
+						+ " seconds\nActivecheck version " + VERSION;
 				NagiosServiceReport report = new NagiosServiceReport(null,
 						localFqdn, NagiosServiceStatus.OK, message,
 						currentTime, currentTime);

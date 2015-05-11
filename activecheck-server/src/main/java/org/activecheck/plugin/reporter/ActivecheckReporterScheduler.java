@@ -9,74 +9,91 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ActivecheckReporterScheduler {
-	private static final Logger logger = LoggerFactory.getLogger(ActivecheckReporterScheduler.class);
+	private static final Logger logger = LoggerFactory
+			.getLogger(ActivecheckReporterScheduler.class);
 
-	private ScheduledThreadPoolExecutor executorService = null;
+	private ScheduledThreadPoolExecutor reporterExecutorService = null;
+	private final ActivecheckFixitRunner fixitRunner;
+	private final Thread fixitExecutor;
+
+	public ActivecheckReporterScheduler() {
+		fixitRunner = new ActivecheckFixitRunner();
+		fixitExecutor = new Thread(fixitRunner);
+		fixitExecutor.setName("FIXIT Executor");
+		fixitExecutor.start();
+	}
 
 	public void setupExecutorService(int worker) {
-		// create thread pool
-		if (executorService == null || executorService.getMaximumPoolSize() > worker) {
-			executorService = new ScheduledThreadPoolExecutor(worker,
+		// create reporter scheduler thread pool
+		if (reporterExecutorService == null
+				|| reporterExecutorService.getMaximumPoolSize() > worker) {
+			reporterExecutorService = new ScheduledThreadPoolExecutor(worker,
 					new ActivecheckReporterThreadFactory());
-			executorService.setKeepAliveTime(5, TimeUnit.SECONDS);
-			executorService.allowCoreThreadTimeOut(true);
+			reporterExecutorService.setKeepAliveTime(5, TimeUnit.SECONDS);
+			reporterExecutorService.allowCoreThreadTimeOut(true);
 		} else {
-			executorService.setCorePoolSize(worker);
+			reporterExecutorService.setCorePoolSize(worker);
 		}
 
 		// try to remove canceled futures
-		executorService.purge();
+		reporterExecutorService.purge();
 	}
 
-	public void addOrUpdateReporter(ActivecheckReporter nagiosReporter,
+	public void addOrUpdateReporter(ActivecheckReporter reporter,
 			int reloadInterval) {
-		if (nagiosReporter.isEnabled()) {
+		if (reporter.isEnabled()) {
 			// schedule reporter
-			nagiosReporter.setDestroyAfterSeconds(reloadInterval * 2);
-			reschedule(nagiosReporter);
+			reporter.setDestroyAfterSeconds(reloadInterval * 2);
+			reschedule(reporter);
 		} else {
-			remove(nagiosReporter);
+			remove(reporter);
 		}
 	}
 
-	public void reschedule(ActivecheckReporter nagiosReporter) {
-		String reporterKey = nagiosReporter.getOverallServiceName();
-		ActivecheckReporterStatus reporterStatus = nagiosReporter.getStatus();
+	public void reschedule(ActivecheckReporter reporter) {
+		String reporterKey = reporter.getOverallServiceName();
+		ActivecheckReporterStatus reporterStatus = reporter.getStatus();
 		long delay = 0;
 		switch (reporterStatus) {
 		case DEAD: // remove dead NagiosReporter
-			remove(nagiosReporter);
+			remove(reporter);
 			break;
 
 		case NEW: // schedule reporter for the first time but not all at
 					// once
-			delay = (nagiosReporter.getScheduleIntervalInSeconds() % (executorService.getQueue().size() + 1)) * 500;
-			logger.debug("Scheduling service '" + reporterKey + "' in " + delay + "ms");
-			nagiosReporter.schedule(executorService, delay);
+			delay = (reporter.getScheduleIntervalInSeconds() % (reporterExecutorService
+					.getQueue().size() + 1)) * 500;
+			logger.debug("Scheduling service '" + reporterKey + "' in " + delay
+					+ "ms");
+			reporter.schedule(reporterExecutorService, delay);
 			break;
 
 		case ERROR: // reschedule reporter with larger delay
 			delay = 120 * 1000;
-			logger.debug("Rescheduling erronous service '" + reporterKey + "' in " + delay + "ms");
-			nagiosReporter.schedule(executorService, delay);
+			logger.debug("Rescheduling erronous service '" + reporterKey
+					+ "' in " + delay + "ms");
+			reporter.schedule(reporterExecutorService, delay);
 			break;
 
 		case REQUEUE: // reschedule reporter
-			delay = nagiosReporter.getScheduleIntervalInSeconds() * 1000;
-			logger.debug("Rescheduling service '" + reporterKey + "' in " + delay + "ms");
-			nagiosReporter.schedule(executorService, delay);
+			delay = reporter.getScheduleIntervalInSeconds() * 1000;
+			logger.debug("Rescheduling service '" + reporterKey + "' in "
+					+ delay + "ms");
+			reporter.schedule(reporterExecutorService, delay);
 			break;
 
 		default: // log status and do nothing
-			logger.debug("Not scheduling service '" + reporterKey + "' in state '" + reporterStatus + "'");
+			logger.debug("Not scheduling service '" + reporterKey
+					+ "' in state '" + reporterStatus + "'");
 			break;
 		}
+		fixitRunner.add(reporter);
 	}
 
-	private void remove(ActivecheckReporter nagiosReporter) {
-		String reporterKey = nagiosReporter.getOverallServiceName();
+	private void remove(ActivecheckReporter reporter) {
+		String reporterKey = reporter.getOverallServiceName();
 
 		logger.info("Removing service '" + reporterKey + "'");
-		executorService.remove(nagiosReporter);
+		reporterExecutorService.remove(reporter);
 	}
 }
