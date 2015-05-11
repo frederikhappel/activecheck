@@ -1,5 +1,8 @@
 package org.activecheck.common.plugin.reporter;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -10,6 +13,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.activecheck.common.Encoding;
 import org.activecheck.common.nagios.NagiosCheckResult;
 import org.activecheck.common.nagios.NagiosPerformanceData;
 import org.activecheck.common.nagios.NagiosServiceReport;
@@ -105,6 +109,9 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements
 						// clear error count
 						errorCount = 0;
 						status = ActivecheckReporterStatus.REQUEUE;
+
+						// run fixit command
+						fixit();
 					} catch (ActivecheckReporterException e) {
 						setOverallServiceReport(NagiosServiceStatus.CRITICAL,
 								e.getMessage());
@@ -290,6 +297,35 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements
 	protected final void pluginReload() {
 		pluginInit();
 		reporterInit();
+	}
+
+	public final void fixit() {
+		String reportServiceName = getOverallServiceName();
+		String fixitKey = ("fixit_" + getOverallServiceStatus()).toLowerCase();
+		String command = properties.getString(fixitKey);
+		if (command != null && !command.isEmpty()) {
+			logger.info("Service '" + reportServiceName + "': trying to run '"
+					+ command + "'");
+			try {
+				Process p = Runtime.getRuntime().exec(command);
+				p.waitFor();
+				BufferedReader reader = new BufferedReader(
+						new InputStreamReader(p.getInputStream(), Encoding.UTF8));
+
+				String line = "";
+				while ((line = reader.readLine()) != null) {
+					logger.info("Service '" + reportServiceName + "' FIXIT: '"
+							+ line);
+				}
+			} catch (IOException | InterruptedException e) {
+				logger.error("Failed to run FIXIT command '" + command + "':"
+						+ e.getMessage());
+			}
+		} else {
+			logger.debug("Service '" + reportServiceName
+					+ "' FIXIT for status '" + getOverallServiceStatus()
+					+ "' not defined");
+		}
 	}
 
 	abstract protected void reporterInit();

@@ -50,4 +50,7 @@ public interface ActivecheckReporterMBean {
 
 	// @Description("get all performance data lines")
 	public List<String> getPerformanceData();
+
+	// @Description("run a fixit command for the current status")
+	public void fixit();
 }
