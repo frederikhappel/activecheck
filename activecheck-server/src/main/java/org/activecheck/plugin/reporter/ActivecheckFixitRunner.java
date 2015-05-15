@@ -23,10 +23,11 @@ public class ActivecheckFixitRunner implements Runnable {
 	@Override
 	public void run() {
 		while (true) {
-			ActivecheckReporter reporter = fixitQueue.poll();
-			while (reporter != null) {
-				if (reporter.getStatus() == ActivecheckReporterStatus.REQUEUE
-						|| reporter.getStatus() == ActivecheckReporterStatus.SCHEDULED) {
+			while (fixitQueue.size() > 0) {
+				ActivecheckReporter reporter = fixitQueue.poll();
+				if (reporter != null
+						&& (reporter.getStatus() == ActivecheckReporterStatus.REQUEUE || reporter
+								.getStatus() == ActivecheckReporterStatus.SCHEDULED)) {
 					logger.info("FIXIT Running script for"
 							+ reporter.getOverallServiceName());
 					reporter.fixit();
