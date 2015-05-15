@@ -18,7 +18,7 @@ public class NagiosCheckResultTest {
 		String message = Files.readFile(is);
 
 		NagiosCheckResult checkResult = NagiosCheckResult.fromMessage(message);
-		assertEquals(checkResult.getPerfData().size(), 330);
+		assertEquals(checkResult.getPerfData().size(), 11);
 	}
 
 	@Test(description = "Test check_load output")
