@@ -118,7 +118,9 @@ public class NagiosCheckResult implements Serializable {
 	}
 
 	public final void addMessage(String message) {
-		messages.add(message.trim());
+		message = message.trim();
+		messages.add(message);
+		logger.debug(message);
 	}
 
 	public final void setMessage(String message) {
