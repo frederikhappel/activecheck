@@ -303,11 +303,13 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements
 		if (command != null && !command.isEmpty()) {
 			logger.info("Service '" + reportServiceName + "': trying to run '"
 					+ command + "'");
+			Process p = null;
+			BufferedReader reader = null;
 			try {
-				Process p = Runtime.getRuntime().exec(command);
+				p = Runtime.getRuntime().exec(command);
 				p.waitFor();
-				BufferedReader reader = new BufferedReader(
-						new InputStreamReader(p.getInputStream(), Encoding.UTF8));
+				reader = new BufferedReader(new InputStreamReader(
+						p.getInputStream(), Encoding.UTF8));
 
 				String line = "";
 				while ((line = reader.readLine()) != null) {
@@ -317,6 +319,17 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements
 			} catch (IOException | InterruptedException e) {
 				logger.error("Failed to run FIXIT command '" + command + "':"
 						+ e.getMessage());
+			} finally {
+				if (reader != null) {
+					try {
+						reader.close();
+					} catch (IOException e) {
+						logger.debug(e.getMessage(), e);
+					}
+				}
+				if (p != null) {
+					p.destroyForcibly();
+				}
 			}
 		} else {
 			logger.debug("Service '" + reportServiceName
