@@ -1,12 +1,13 @@
 package org.activecheck.common.plugin;
 
+@SuppressWarnings("unused")
 public interface ActivecheckPluginMBean {
-	// @Description("reload plugin configuration from properties")
-	public void reloadConfiguration();
+    // @Description("reload plugin configuration from properties")
+    void reloadConfiguration();
 
-	// @Description("last configuration reload time")
-	public String getConfigurationReloadTime();
+    // @Description("last configuration reload time")
+    String getConfigurationReloadTime();
 
-	// @Description("Configuration file")
-	public String getConfigFile();
+    // @Description("Configuration file")
+    String getConfigFile();
 }

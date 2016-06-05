@@ -2,55 +2,56 @@ package org.activecheck.common.plugin.reporter;
 
 import java.util.List;
 
+@SuppressWarnings("unused")
 public interface ActivecheckReporterMBean {
-	// @Description("rerun checks")
-	public void runCommand() throws ActivecheckReporterException;
+    // @Description("rerun checks")
+    String runCommandOperation();
 
-	// @Description("reload plugin configuration from properties")
-	public void reloadConfiguration();
+    // @Description("reload plugin configuration from properties")
+    void reloadConfiguration();
 
-	// @Description("last configuration reload time")
-	public String getConfigurationReloadTime();
+    // @Description("last configuration reload time")
+    String getConfigurationReloadTime();
 
-	// @Description("Configuration file")
-	public String getConfigFile();
+    // @Description("Configuration file")
+    String getConfigFile();
 
-	// @Description("destroy reporter after specified time in seconds")
-	public int getDestroyAfterSeconds();
+    // @Description("destroy reporter after specified time in seconds")
+    int getDestroyAfterSeconds();
 
-	// @Description("Nagios service name")
-	public String getOverallServiceName();
+    // @Description("Nagios service name")
+    String getOverallServiceName();
 
-	// @Description("Nagios service host")
-	public String getOverallServiceHost();
+    // @Description("Nagios service host")
+    String getOverallServiceHost();
 
-	// @Description("Nagios service status")
-	public String getOverallServiceStatus();
+    // @Description("Nagios service status")
+    String getOverallServiceStatus();
 
-	// @Description("Nagios reporter status")
-	public String getNagiosReporterStatus();
+    // @Description("Nagios reporter status")
+    String getNagiosReporterStatus();
 
-	// @Description("Nagios check interval")
-	public int getCheckInterval();
+    // @Description("Nagios check interval")
+    int getCheckInterval();
 
-	// @Description("Nagios retry interval")
-	public int getRetryInterval();
+    // @Description("Nagios retry interval")
+    int getRetryInterval();
 
-	// @Description("last run time")
-	public String getLastRunTime();
+    // @Description("last run time")
+    String getLastRunTime();
 
-	// @Description("execution time in milliseconds")
-	public long getExecutionTimeMillis();
+    // @Description("execution time in milliseconds")
+    long getExecutionTimeMillis();
 
-	// @Description("last schedule time")
-	public String getLastScheduleTime();
+    // @Description("last schedule time")
+    String getLastScheduleTime();
 
-	// @Description("last schedule delay in milliseconds")
-	public long getLastScheduleDelayMillis();
+    // @Description("last schedule delay in milliseconds")
+    long getLastScheduleDelayMillis();
 
-	// @Description("get all performance data lines")
-	public List<String> getPerformanceData();
+    // @Description("get all performance data lines")
+    List<String> getPerformanceData();
 
-	// @Description("run a fixit command for the current status")
-	public void fixit();
+    // @Description("run a fixit command for the current status")
+    String fixit();
 }

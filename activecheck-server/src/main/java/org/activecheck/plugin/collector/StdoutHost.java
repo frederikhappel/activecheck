@@ -9,44 +9,44 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class StdoutHost extends ActivecheckCollector {
-	private static final Logger logger = LoggerFactory
-			.getLogger(StdoutHost.class);
+    private static final Logger logger = LoggerFactory.getLogger(StdoutHost.class);
 
-	private static PropertiesConfiguration defaultProperties;
-	static {
-		defaultProperties = new PropertiesConfiguration();
-		defaultProperties.addProperty("host", "localhost");
-	}
+    private static PropertiesConfiguration defaultProperties;
 
-	// dummy constructor
-	public StdoutHost() {
-		super(defaultProperties, ActivecheckCollectorType.REPORTING, "STDOUT");
-	}
+    static {
+        defaultProperties = new PropertiesConfiguration();
+        defaultProperties.addProperty("host", "localhost");
+    }
 
-	@Override
-	public synchronized void sendImpl(NagiosServiceReport report) {
-		NagiosServiceStatus status = report.getStatus();
-		String serviceName = report.getServiceName();
-		String message = report.getMessageWithPerformancedata();
-		if (serviceName == null) {
-			System.out.println(message);
-		} else {
-			System.out.println(status + " - " + serviceName + "\n" + message);
-		}
-	}
+    // dummy constructor
+    public StdoutHost() {
+        super(defaultProperties, ActivecheckCollectorType.REPORTING, "STDOUT");
+    }
 
-	@Override
-	public String getCollectorEndpointName() {
-		return "STDOUT";
-	}
+    @Override
+    public synchronized void sendImpl(NagiosServiceReport report) {
+        final NagiosServiceStatus status = report.getStatus();
+        final String serviceName = report.getServiceName();
+        final String message = report.getMessageWithPerformancedata();
+        if (serviceName == null) {
+            System.out.println(message);
+        } else {
+            System.out.println(status + " - " + serviceName + "\n" + message);
+        }
+    }
 
-	@Override
-	public void disconnect() throws Exception {
-		logger.info("Nothing to disconnect");
-	}
+    @Override
+    public String getCollectorEndpointName() {
+        return "STDOUT";
+    }
 
-	@Override
-	protected void collectorInit() {
-		// nothing to be done here
-	}
+    @Override
+    public void disconnect() throws Exception {
+        logger.info("Nothing to disconnect");
+    }
+
+    @Override
+    protected void collectorInit() {
+        // nothing to be done here
+    }
 }
