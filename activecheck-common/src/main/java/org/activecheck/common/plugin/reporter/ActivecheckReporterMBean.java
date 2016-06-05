@@ -1,20 +1,13 @@
 package org.activecheck.common.plugin.reporter;
 
+import org.activecheck.common.plugin.ActivecheckPluginMBean;
+
 import java.util.List;
 
 @SuppressWarnings("unused")
-public interface ActivecheckReporterMBean {
+public interface ActivecheckReporterMBean extends ActivecheckPluginMBean {
     // @Description("rerun checks")
     String runCommandOperation();
-
-    // @Description("reload plugin configuration from properties")
-    void reloadConfiguration();
-
-    // @Description("last configuration reload time")
-    String getConfigurationReloadTime();
-
-    // @Description("Configuration file")
-    String getConfigFile();
 
     // @Description("destroy reporter after specified time in seconds")
     int getDestroyAfterSeconds();

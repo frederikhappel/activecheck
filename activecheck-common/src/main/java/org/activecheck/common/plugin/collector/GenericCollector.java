@@ -16,7 +16,7 @@ public class GenericCollector {
 
     public GenericCollector(String hostWithPort, int defaultPort) {
         Validate.notNull(hostWithPort);
-        String[] hostParts = hostWithPort.toLowerCase().split(":");
+        final String[] hostParts = hostWithPort.toLowerCase().split(":");
         setPort(hostParts.length > 1 ? Integer.parseInt(hostParts[1])
                 : defaultPort);
         setFqdn(hostParts[0]);
@@ -34,7 +34,7 @@ public class GenericCollector {
     public void setFqdn(String fqdn) {
         Validate.notNull(fqdn);
         if (!fqdn.equals(getFqdn())) {
-            String[] fqdnParts = fqdn.split("\\.", 2);
+            final String[] fqdnParts = fqdn.split("\\.", 2);
             hostname = fqdnParts[0];
             domain = fqdnParts.length > 1 ? fqdnParts[1] : null;
             changed = true;

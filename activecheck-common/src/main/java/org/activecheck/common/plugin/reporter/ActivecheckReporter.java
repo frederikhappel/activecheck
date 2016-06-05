@@ -25,11 +25,9 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public abstract class ActivecheckReporter extends ActivecheckPlugin implements
-        Runnable, ActivecheckReporterMBean {
-    // constants
-    private static final Logger logger = LoggerFactory
-            .getLogger(ActivecheckReporter.class);
+@SuppressWarnings("unused")
+public abstract class ActivecheckReporter extends ActivecheckPlugin implements Runnable, ActivecheckReporterMBean {
+    private static final Logger logger = LoggerFactory.getLogger(ActivecheckReporter.class);
     private static final int DEFAULT_CHECK_INTERVAL = 30;
 
     // class members
@@ -37,7 +35,7 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements
     private String overallServiceName = null;
     private String overallServiceHost = null;
     private ActivecheckReporterStatus status = ActivecheckReporterStatus.NEW;
-    ScheduledFuture<ActivecheckReporter> sf = null;
+    private ScheduledFuture<ActivecheckReporter> sf = null;
     private final Map<String, NagiosServiceReport> serviceReports = new HashMap<>();
 
     private int checkInterval = DEFAULT_CHECK_INTERVAL;
@@ -60,7 +58,7 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements
         reportRouting = new NagiosServiceReportRouting(properties);
 
         // initialize what has not been initialized
-        setPluginName("REPORTER_" + overallServiceName);
+        setPluginName(String.format("REPORTER_%s", overallServiceName));
         pluginInit();
     }
 
@@ -69,10 +67,8 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements
         reportRouting.setFromProperties(properties);
 
         // calculate intervals
-        checkInterval = properties.getInt("check_interval",
-                DEFAULT_CHECK_INTERVAL);
-        retryInterval = properties.getInt("retry_interval",
-                DEFAULT_CHECK_INTERVAL);
+        checkInterval = properties.getInt("check_interval", DEFAULT_CHECK_INTERVAL);
+        retryInterval = properties.getInt("retry_interval", DEFAULT_CHECK_INTERVAL);
         if (retryInterval > checkInterval) {
             retryInterval = checkInterval;
         }
@@ -117,7 +113,8 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements
                         logger.debug("error count for service {} = {}", overallServiceName, errorCount);
                         if (errorCountMax > 0 && errorCount >= errorCountMax) {
                             status = ActivecheckReporterStatus.REQUESTSHUTDOWN;
-                            logger.error("reached max errors of {} for service {}. Requesting shutdown", errorCountMax, overallServiceName);
+                            logger.error("reached max errors of {} for service {}. Requesting shutdown",
+                                    errorCountMax, overallServiceName);
                         } else {
                             status = ActivecheckReporterStatus.ERROR;
                             logger.error(e.getMessage());
@@ -203,6 +200,7 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements
         return lastScheduleDelay;
     }
 
+    @SuppressWarnings("unchecked")
     public final ScheduledFuture<ActivecheckReporter> schedule(
             ScheduledThreadPoolExecutor executorService, long delay) {
         // cancel schedule if already existing
@@ -211,8 +209,7 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements
         if (sf != null) {
             sf.cancel(true);
         }
-        sf = (ScheduledFuture<ActivecheckReporter>) executorService.schedule(
-                this, delay, TimeUnit.MILLISECONDS);
+        sf = (ScheduledFuture<ActivecheckReporter>) executorService.schedule(this, delay, TimeUnit.MILLISECONDS);
         status = ActivecheckReporterStatus.SCHEDULED;
         return sf;
     }
@@ -273,8 +270,7 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements
         setOverallServiceReport(report);
     }
 
-    protected final void setOverallServiceReport(NagiosServiceStatus status,
-                                                 String message) {
+    protected final void setOverallServiceReport(NagiosServiceStatus status, String message) {
         final NagiosServiceReport report = new NagiosServiceReport(
                 overallServiceName, overallServiceHost, status);
         report.setMessage(message);
@@ -289,42 +285,47 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements
 
     public final String fixit() {
         final String reportServiceName = getOverallServiceName();
-        final String fixitKey = ("fixit_" + getOverallServiceStatus()).toLowerCase();
+        final String fixitKey = String.format("fixit_%s", getOverallServiceStatus().toLowerCase());
         final String command = properties.getString(fixitKey);
         final StringBuilder exitMessage = new StringBuilder();
         if (command != null && !command.isEmpty()) {
             logger.info("Service '{}': trying to run '{}'", reportServiceName, command);
             Process p = null;
-            BufferedReader reader = null;
             try {
                 p = Runtime.getRuntime().exec(command);
                 p.waitFor();
-                reader = new BufferedReader(new InputStreamReader(
-                        p.getInputStream(), Encoding.UTF8));
-
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    exitMessage.append(line);
-                    logger.info("Service '{}' FIXIT: {}", reportServiceName, line);
+                try (final BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(p.getInputStream(), Encoding.UTF8))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        exitMessage.append(line);
+                        logger.info("Service '{}' FIXIT: {}", reportServiceName, line);
+                    }
+                } catch (IOException e) {
+                    final String message = String.format(
+                            "Failed to run FIXIT command '%s': %s",
+                            command, e.getMessage()
+                    );
+                    exitMessage.append(message);
+                    logger.error(message);
                 }
             } catch (IOException | InterruptedException e) {
-                String message = String.format("Failed to run FIXIT command '%s': %s", command, e.getMessage());
+                final String message = String.format(
+                        "Failed to run FIXIT command '%s': %s",
+                        command, e.getMessage()
+                );
                 exitMessage.append(message);
                 logger.error(message);
             } finally {
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (IOException e) {
-                        logger.debug(e.getMessage(), e);
-                    }
-                }
                 if (p != null) {
                     p.destroyForcibly();
                 }
             }
         } else {
-            String message = String.format("Service '%s' FIXIT for status '%s' is not defined", reportServiceName, getOverallServiceStatus());
+            final String message = String.format(
+                    "Service '%s' FIXIT for status '%s' is not defined",
+                    reportServiceName, getOverallServiceStatus()
+            );
             exitMessage.append(message);
             logger.debug(message);
         }
@@ -341,7 +342,7 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements
     public String runCommandOperation() {
         try {
             runCommand();
-            return getOverallServiceStatus();
+            return String.format("Status: %s", getOverallServiceStatus());
         } catch (ActivecheckReporterException e) {
             return e.getMessage();
         }

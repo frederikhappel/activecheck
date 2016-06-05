@@ -12,10 +12,8 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.Observable;
 
-public abstract class ActivecheckPlugin extends Observable implements
-        ConfigurationListener, ActivecheckPluginMBean {
-    private static final Logger logger = LoggerFactory
-            .getLogger(ActivecheckPlugin.class);
+public abstract class ActivecheckPlugin extends Observable implements ConfigurationListener, ActivecheckPluginMBean {
+    private static final Logger logger = LoggerFactory.getLogger(ActivecheckPlugin.class);
 
     // class members
     protected final PropertiesConfiguration properties;
@@ -25,22 +23,20 @@ public abstract class ActivecheckPlugin extends Observable implements
     public ActivecheckPlugin(PropertiesConfiguration properties) {
         Validate.notNull(properties);
         this.properties = (PropertiesConfiguration) properties.clone();
-        this.properties
-                .setReloadingStrategy(new FileChangedReloadingStrategy());
+        this.properties.setReloadingStrategy(new FileChangedReloadingStrategy());
         this.properties.addConfigurationListener(this);
     }
 
     public final void setProperties(PropertiesConfiguration newProperties) {
         // merge own properties with given properties
         Validate.notNull(newProperties);
-        Iterator<String> keys = newProperties.getKeys();
+        final Iterator<String> keys = newProperties.getKeys();
         while (keys.hasNext()) {
-            String key = keys.next();
-            Object value = newProperties.getProperty(key);
+            final String key = keys.next();
+            final Object value = newProperties.getProperty(key);
             if (!properties.containsKey(key)) {
                 properties.addProperty(key, value);
-            } else if (!properties.getString(key).contentEquals(
-                    newProperties.getString(key))) {
+            } else if (!properties.getString(key).contentEquals(newProperties.getString(key))) {
                 properties.setProperty(key, value);
             }
         }
@@ -52,7 +48,8 @@ public abstract class ActivecheckPlugin extends Observable implements
 
     @Override
     public final void configurationChanged(ConfigurationEvent arg0) {
-        logger.debug("Received configuration change '{}' for plugin '{}' attribute '{}' => '{}'", arg0.getType(), getPluginName(), arg0.getPropertyName(), arg0.getPropertyValue());
+        logger.debug("Received configuration change '{}' for plugin '{}' attribute '{}' => '{}'",
+                arg0.getType(), getPluginName(), arg0.getPropertyName(), arg0.getPropertyValue());
         reloadConfiguration();
     }
 
@@ -60,11 +57,12 @@ public abstract class ActivecheckPlugin extends Observable implements
         return properties.getBoolean("enabled", true);
     }
 
-    public final void reloadConfiguration() {
-        long currentReloadTime = System.currentTimeMillis();
+    public final String reloadConfiguration() {
+        final long currentReloadTime = System.currentTimeMillis();
         logger.debug("Reloading configuration for plugin '{}'", getPluginName());
         pluginReload();
         lastReloadTime = currentReloadTime;
+        return String.format("Reloaded Configuration on %s", new Date(lastReloadTime));
     }
 
     public final String getConfigurationReloadTime() {
@@ -82,8 +80,7 @@ public abstract class ActivecheckPlugin extends Observable implements
     public final String getPluginName() {
         // initialize with a unique name if null
         if (pluginName == null) {
-            pluginName = this.getClass().getSimpleName() + "_"
-                    + this.hashCode();
+            pluginName = String.format("%s_%s", this.getClass().getSimpleName(), this.hashCode());
         }
         return pluginName;
     }

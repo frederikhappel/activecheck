@@ -22,7 +22,7 @@ public class MBeanRegistrationFactory {
     }
 
     public void register(String domain, String name, Object mbean) {
-        final String jmxName = domain + "," + "name=" + name.replaceAll(":", "_");
+        final String jmxName = String.format("%s,name=%s", domain, name.replaceAll(":", "_"));
         try {
             final ObjectName jmxObjectName = new ObjectName(jmxName);
             try {
@@ -39,7 +39,7 @@ public class MBeanRegistrationFactory {
     }
 
     public void unregister(String domain, String name) {
-        final String jmxName = domain + "," + "name=" + name.replaceAll(":", "_");
+        final String jmxName = String.format("%s,name=%s", domain, name.replaceAll(":", "_"));
         try {
             final ObjectName jmxObjectName = new ObjectName(jmxName);
             try {

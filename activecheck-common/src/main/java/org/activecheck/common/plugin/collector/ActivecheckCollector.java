@@ -6,10 +6,8 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-abstract public class ActivecheckCollector extends ActivecheckPlugin implements
-        ActivecheckCollectorMBean {
-    private static final Logger logger = LoggerFactory
-            .getLogger(ActivecheckCollector.class);
+abstract public class ActivecheckCollector extends ActivecheckPlugin implements ActivecheckCollectorMBean {
+    private static final Logger logger = LoggerFactory.getLogger(ActivecheckCollector.class);
 
     public static final int RETRY_INTERVAL_MAX = 60;
     public static final int RETRY_INTERVAL_DEFAULT = 1;
@@ -24,9 +22,9 @@ abstract public class ActivecheckCollector extends ActivecheckPlugin implements
         this.type = type;
 
         // initialize what has not been initialized
-        setPluginName("COLLECTOR_" + type + "_"
-                + this.getClass().getSimpleName().toUpperCase() + "_"
-                + hashCode());
+        setPluginName(String.format(
+                "COLLECTOR_%s_%s_%s", type, this.getClass().getSimpleName().toUpperCase(), hashCode()
+        ));
         pluginInit();
     }
 
@@ -36,7 +34,7 @@ abstract public class ActivecheckCollector extends ActivecheckPlugin implements
         this.type = type;
 
         // initialize what has not been initialized
-        setPluginName("COLLECTOR_" + type + "_" + pluginNameSuffix);
+        setPluginName(String.format("COLLECTOR_%s_%s", type, pluginNameSuffix));
         pluginInit();
     }
 
@@ -51,12 +49,12 @@ abstract public class ActivecheckCollector extends ActivecheckPlugin implements
     }
 
     public final void send(NagiosServiceReport report) {
-        String serviceName = report.getServiceName();
+        final String serviceName = report.getServiceName();
 
         switch (type) {
             case GRAPHING:
-                boolean graphPerfData = report.getRouting().doGraphPerfdata();
-                boolean graphNagiosStatus = report.getRouting().doGraphResults();
+                final boolean graphPerfData = report.getRouting().doGraphPerfdata();
+                final boolean graphNagiosStatus = report.getRouting().doGraphResults();
                 if (!graphNagiosStatus && !graphPerfData) {
                     logger.info("nothing should be graphed");
                 } else if (!report.hasChanged()) {
@@ -69,7 +67,7 @@ abstract public class ActivecheckCollector extends ActivecheckPlugin implements
                 break;
 
             case REPORTING:
-                boolean reportResults = report.getRouting().doReportResults();
+                final boolean reportResults = report.getRouting().doReportResults();
                 if (!reportResults) {
                     logger.info("check results should not be submitted for service '{}'", serviceName);
                 } else {
