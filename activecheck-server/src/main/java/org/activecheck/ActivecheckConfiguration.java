@@ -22,6 +22,7 @@ public class ActivecheckConfiguration {
     private static final boolean DEFAULT_NSCA_PROXY = false;
     private static final int DEFAULT_CONFIGURATION_RELOAD_INTERVAL = 60;
     private static final int DEFAULT_HOSTCHECK_INTERVAL = 10;
+    private static final int DEFAULT_CHECKDUMP_INTERVAL = 10;
     private static final boolean DEFAULT_CONSOLE_LOG = false;
 
     // define class members
@@ -118,5 +119,13 @@ public class ActivecheckConfiguration {
 
     public int getHostCheckInterval() {
         return properties.getInt("hostcheck_interval", DEFAULT_HOSTCHECK_INTERVAL);
+    }
+
+    public int getCheckDumpInterval() {
+        return properties.getInt("checkdump_interval", DEFAULT_CHECKDUMP_INTERVAL);
+    }
+
+    public String getCheckDumpFile() {
+        return properties.getString("checkdump_file", null);
     }
 }

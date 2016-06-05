@@ -16,6 +16,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Observer;
@@ -139,5 +140,15 @@ public class ActivecheckPluginFactory {
 
     public int getPluginCount() {
         return activecheckPlugins.size();
+    }
+
+    public <T extends ActivecheckPlugin> Collection<T> getPlugins(final Class<T> cls) {
+        final Collection<T> collection = new ArrayList<>();
+        for (ActivecheckPlugin plugin : activecheckPlugins.values()) {
+            if (cls.isInstance(plugin)) {
+                collection.add((T) plugin);
+            }
+        }
+        return collection;
     }
 }

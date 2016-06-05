@@ -4,12 +4,12 @@ import com.beust.jcommander.JCommander;
 import org.activecheck.common.Encoding;
 import org.activecheck.common.nagios.NagiosServiceReport;
 import org.activecheck.common.nagios.NagiosServiceStatus;
-import org.activecheck.net.ActivecheckServer;
-import org.activecheck.net.TcpActivecheckServer;
 import org.activecheck.common.plugin.ActivecheckPlugin;
 import org.activecheck.common.plugin.collector.ActivecheckCollector;
 import org.activecheck.common.plugin.reporter.ActivecheckReporter;
 import org.activecheck.common.plugin.reporter.ActivecheckReporterStatus;
+import org.activecheck.net.ActivecheckServer;
+import org.activecheck.net.TcpActivecheckServer;
 import org.activecheck.plugin.ActivecheckPluginFactory;
 import org.activecheck.plugin.collector.ActivecheckPacketProcessor;
 import org.activecheck.plugin.collector.StdoutHost;
@@ -46,12 +46,14 @@ public class Activecheck implements Observer {
     private String selfJarChecksum = null;
     private boolean killOnChecksumMismatch = true;
     private int reloadInterval = 3600;
+    private int checkDumpInterval = 10;
     private int hostCheckInterval = 60;
 
     private ActivecheckConfiguration configuration;
     private final ActivecheckPluginFactory pluginFactory;
     private final ActivecheckReporterScheduler reporterScheduler;
     private final ActivecheckPacketProcessor activecheckPacketProcessor;
+    private final CheckDumper checkDumper;
 
     private String localFqdn = "localhost";
 
@@ -80,6 +82,7 @@ public class Activecheck implements Observer {
         pluginFactory = new ActivecheckPluginFactory();
         reporterScheduler = new ActivecheckReporterScheduler();
         activecheckPacketProcessor = new ActivecheckPacketProcessor();
+        checkDumper = new CheckDumper();
 
         // load configuration
         reloadConfiguration();
@@ -121,14 +124,17 @@ public class Activecheck implements Observer {
                     new FileOutputStream(pidfile), Encoding.UTF8))) {
                 writer.write(pid_parts[0]);
             } catch (IOException e) {
-                final String errorMessage = String.format("Unable to write pidfile '%s': %s", pidfile, e.getMessage());
-                logger.error(errorMessage);
+                logger.error("Unable to write pidfile '{}': {}", pidfile, e.getMessage());
                 logger.trace(e.getMessage(), e);
                 System.exit(1);
             }
         }
         reloadInterval = configuration.getConfigurationReloadInterval();
         hostCheckInterval = configuration.getHostCheckInterval();
+
+        // should we dump failed checks into a file?
+        checkDumpInterval = configuration.getCheckDumpInterval();
+        checkDumper.setCheckDumpFile(configuration.getCheckDumpFile());
 
         // log to console
         if (configuration.logToConsole()) {
@@ -163,6 +169,7 @@ public class Activecheck implements Observer {
                 logger.debug(e.getMessage(), e);
             }
         }
+
     }
 
     @Override
@@ -216,6 +223,7 @@ public class Activecheck implements Observer {
 
         long lastReloadMillis = System.currentTimeMillis();
         long lastHostCheckMillis = 0;
+        long lastCheckDumpMillis = 0;
         while (true) {
             try {
                 Thread.sleep(500);
@@ -223,7 +231,7 @@ public class Activecheck implements Observer {
                 logger.error("Failed to sleep thread for 500ms");
                 logger.trace(e.getMessage(), e);
             }
-            long time = System.currentTimeMillis();
+            final long time = System.currentTimeMillis();
 
             // reload configuration?
             long diffMillis = time - lastReloadMillis;
@@ -249,6 +257,17 @@ public class Activecheck implements Observer {
                 activecheckPacketProcessor.process(report);
                 logger.debug("Next host check in {}s", hostCheckInterval);
             }
+
+            // output failed checks to file
+            diffMillis = time - lastCheckDumpMillis;
+            if (checkDumpInterval * 1000 - diffMillis <= 1000) {
+                lastCheckDumpMillis = time;
+                // dump to file
+                logger.debug("Last check dump {} milliseconds ago", diffMillis);
+                checkDumper.dump(pluginFactory.getPlugins(ActivecheckReporter.class));
+                logger.debug("Next check dump in {}s", checkDumpInterval);
+            }
+
         }
     }
 

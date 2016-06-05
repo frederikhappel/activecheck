@@ -7,9 +7,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Observable;
+import java.util.concurrent.TimeUnit;
 
 public class PidFile extends Observable implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(PidFile.class);
@@ -22,13 +22,9 @@ public class PidFile extends Observable implements Runnable {
     private void check() {
         if (filename != null) {
             logger.debug("checking pidfile {}", filename);
-            try {
-                InputStream in = new FileInputStream(filename);
-                BufferedReader reader = new BufferedReader(
-                        new InputStreamReader(in, Encoding.UTF8));
-                int pidFromFile = Integer.parseInt(reader.readLine());
-                reader.close();
-                in.close();
+            try (final BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(new FileInputStream(filename), Encoding.UTF8))) {
+                final int pidFromFile = Integer.parseInt(reader.readLine());
 
                 setPid(pidFromFile);
             } catch (Exception e) {
@@ -43,9 +39,9 @@ public class PidFile extends Observable implements Runnable {
         while (countObservers() > 0) {
             check();
             try {
-                Thread.sleep(checkIntervalInSeconds * 1000);
+                TimeUnit.SECONDS.sleep(checkIntervalInSeconds);
             } catch (InterruptedException e) {
-                logger.error("Failed to sleep thread for 1000ms");
+                logger.error("Failed to sleep thread for {}s", checkIntervalInSeconds);
                 logger.trace(e.getMessage(), e);
             }
         }
