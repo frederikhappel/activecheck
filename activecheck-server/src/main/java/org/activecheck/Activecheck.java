@@ -4,8 +4,8 @@ import com.beust.jcommander.JCommander;
 import org.activecheck.common.Encoding;
 import org.activecheck.common.nagios.NagiosServiceReport;
 import org.activecheck.common.nagios.NagiosServiceStatus;
-import org.activecheck.common.net.ActivecheckServer;
-import org.activecheck.common.net.TcpActivecheckServer;
+import org.activecheck.net.ActivecheckServer;
+import org.activecheck.net.TcpActivecheckServer;
 import org.activecheck.common.plugin.ActivecheckPlugin;
 import org.activecheck.common.plugin.collector.ActivecheckCollector;
 import org.activecheck.common.plugin.reporter.ActivecheckReporter;
@@ -97,8 +97,7 @@ public class Activecheck implements Observer {
                 System.exit(0);
             }
         } catch (IOException | URISyntaxException e) {
-            // to avoid that this exception occurs again, set
-            // killOnChecksumMismatch = false
+            // to avoid that this exception occurs again, set killOnChecksumMismatch = false
             killOnChecksumMismatch = false;
             logger.warn("Cannot kill self on checksum mismatch: {}", e.getMessage());
             logger.trace(e.getMessage(), e);
@@ -243,7 +242,7 @@ public class Activecheck implements Observer {
                 logger.debug("Last host check {} milliseconds ago", diffMillis);
                 final long currentTime = System.currentTimeMillis();
                 final long uptime = ManagementFactory.getRuntimeMXBean().getUptime() / 1000;
-                final String message = String.format("Uptime %d seconds\nActivecheck version ", uptime, VERSION);
+                final String message = String.format("Uptime %d seconds%nActivecheck version %s", uptime, VERSION);
                 final NagiosServiceReport report = new NagiosServiceReport(
                         null, localFqdn, NagiosServiceStatus.OK, message, currentTime, currentTime
                 );

@@ -22,9 +22,7 @@ import java.util.Observer;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ActivecheckPluginFactory {
-    private static final Logger logger = LoggerFactory
-            .getLogger(ActivecheckPluginFactory.class);
-
+    private static final Logger logger = LoggerFactory.getLogger(ActivecheckPluginFactory.class);
     private static final String JMX_OBJECT_DOMAIN = "org.activecheck:type=Plugins";
 
     private final Map<String, ActivecheckPlugin> activecheckPlugins;
@@ -92,8 +90,9 @@ public class ActivecheckPluginFactory {
         final ActivecheckPluginProperties activecheckPluginProperties = pluginClass
                 .getAnnotation(ActivecheckPluginProperties.class);
         if (activecheckPluginProperties != null) {
-            pluginProperties = configuration.mergeWith(pluginProperties, Arrays
-                    .asList(activecheckPluginProperties.propertiesToMerge()));
+            pluginProperties = configuration.mergeWith(
+                    pluginProperties, Arrays.asList(activecheckPluginProperties.propertiesToMerge())
+            );
         } else {
             logger.error("ActivecheckPluginProperties annotation missing for {}", pluginClass);
         }

@@ -10,8 +10,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
 public class ActivecheckFixitRunner implements Runnable {
-    private static final Logger logger = LoggerFactory
-            .getLogger(ActivecheckFixitRunner.class);
+    private static final Logger logger = LoggerFactory.getLogger(ActivecheckFixitRunner.class);
 
     private Queue<ActivecheckReporter> fixitQueue = new ConcurrentLinkedQueue<>();
 

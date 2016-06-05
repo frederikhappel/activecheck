@@ -9,8 +9,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class ActivecheckReporterScheduler {
-    private static final Logger logger = LoggerFactory
-            .getLogger(ActivecheckReporterScheduler.class);
+    private static final Logger logger = LoggerFactory.getLogger(ActivecheckReporterScheduler.class);
 
     private ScheduledThreadPoolExecutor reporterExecutorService = null;
     private final ActivecheckFixitRunner fixitRunner;

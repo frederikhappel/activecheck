@@ -8,8 +8,7 @@ import java.util.Map;
 import java.util.Observer;
 
 public class PidFileFactory {
-    private static final Logger logger = LoggerFactory
-            .getLogger(PidFileFactory.class);
+    private static final Logger logger = LoggerFactory.getLogger(PidFileFactory.class);
     private static final PidFileFactory instance = new PidFileFactory();
 
     // define class members

@@ -14,8 +14,7 @@ import java.util.Map;
 
 public class NagiosCheckResult implements Serializable {
     private static final long serialVersionUID = 7642381902579833708L;
-    private static final Logger logger = LoggerFactory
-            .getLogger(NagiosCheckResult.class);
+    private static final Logger logger = LoggerFactory.getLogger(NagiosCheckResult.class);
 
     private NagiosServiceStatus status = NagiosServiceStatus.OK;
     private final List<String> messages = new ArrayList<>();

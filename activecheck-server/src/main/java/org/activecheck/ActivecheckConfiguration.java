@@ -48,7 +48,8 @@ public class ActivecheckConfiguration {
         final Iterator<String> keys = properties.getKeys();
         while (keys.hasNext()) {
             final String key = keys.next();
-            if ((propertiesToMerge.contains(key) || additionalPropertiesToMerge.contains(key)) && !childProperties.containsKey(key)) {
+            if ((propertiesToMerge.contains(key) || additionalPropertiesToMerge.contains(key))
+                    && !childProperties.containsKey(key)) {
                 childProperties.addProperty(key, properties.getProperty(key));
             }
         }
@@ -107,7 +108,8 @@ public class ActivecheckConfiguration {
     }
 
     public String getPluginDir() {
-        return properties.getString("plugindir", "plugins");
+        final File pluginDir = new File(properties.getString("plugindir", "plugins"));
+        return pluginDir.getAbsolutePath();
     }
 
     public int getWorker() {

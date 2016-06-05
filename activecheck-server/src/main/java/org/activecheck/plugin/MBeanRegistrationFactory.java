@@ -13,8 +13,7 @@ import javax.management.ObjectName;
 import java.lang.management.ManagementFactory;
 
 public class MBeanRegistrationFactory {
-    private static final Logger logger = LoggerFactory
-            .getLogger(MBeanRegistrationFactory.class);
+    private static final Logger logger = LoggerFactory.getLogger(MBeanRegistrationFactory.class);
     private static final MBeanRegistrationFactory instance = new MBeanRegistrationFactory();
     private final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
 

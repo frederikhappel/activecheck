@@ -2,8 +2,7 @@ package org.activecheck.common.nagios;
 
 import org.apache.commons.codec.digest.DigestUtils;
 
-public class NagiosServiceReport extends NagiosCheckResult implements
-        Comparable<NagiosServiceReport> {
+public class NagiosServiceReport extends NagiosCheckResult implements Comparable<NagiosServiceReport> {
     private static final long serialVersionUID = -4631772558439693705L;
     private final String serviceName;
     private volatile String serviceHost;

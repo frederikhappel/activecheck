@@ -1,4 +1,4 @@
-package org.activecheck.common.net;
+package org.activecheck.net;
 
 import org.activecheck.common.nagios.NagiosServiceReport;
 import org.slf4j.Logger;
@@ -11,8 +11,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class TcpActivecheckServer extends ActivecheckServer {
-    private static final Logger logger = LoggerFactory
-            .getLogger(TcpActivecheckServer.class);
+    private static final Logger logger = LoggerFactory.getLogger(TcpActivecheckServer.class);
     private final ServerSocket serverSocket;
 
     public TcpActivecheckServer(InetAddress bindAddress, int bindPort)

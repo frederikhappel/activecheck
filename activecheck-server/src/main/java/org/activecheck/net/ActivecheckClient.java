@@ -1,4 +1,4 @@
-package org.activecheck.common.net;
+package org.activecheck.net;
 
 import org.activecheck.common.nagios.NagiosServiceReport;
 
