@@ -10,4 +10,13 @@ public interface ActivecheckPluginMBean {
 
     // @Description("Configuration file")
     String getConfigFile();
+
+    // @Description("disable this plugin instance (until next reload)")
+    String disable();
+
+    // @Description("indicates if this plugin is enabled")
+    boolean isEnabled();
+
+    // @Description("destroy plugin after it has not been used for the defined time in seconds")
+    int getDestroyAfterSeconds();
 }

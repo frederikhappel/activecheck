@@ -1,4 +1,4 @@
-package org.activecheck.plugin;
+package org.activecheck;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,22 +12,33 @@ import javax.management.NotCompliantMBeanException;
 import javax.management.ObjectName;
 import java.lang.management.ManagementFactory;
 
-public class MBeanRegistrationFactory {
-    private static final Logger logger = LoggerFactory.getLogger(MBeanRegistrationFactory.class);
-    private static final MBeanRegistrationFactory instance = new MBeanRegistrationFactory();
+public class MBeanRegistry {
+    private static final Logger logger = LoggerFactory.getLogger(MBeanRegistry.class);
+    private static final String JMX_OBJECT_PREFIX = "org.activecheck";
+
+    private static final MBeanRegistry instance = new MBeanRegistry();
     private final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
 
-    public static MBeanRegistrationFactory getInstance() {
+    public static MBeanRegistry getInstance() {
         return instance;
     }
 
-    public void register(String domain, String name, Object mbean) {
-        final String jmxName = String.format("%s,name=%s", domain, name.replaceAll(":", "_"));
+    private String generateJmxPath(String type, String name) {
+        final StringBuilder sb = new StringBuilder();
+        sb.append(String.format("%s:type=%s", JMX_OBJECT_PREFIX, type));
+        if (name != null) {
+            sb.append(",name=").append(name.replaceAll(":", "_"));
+        }
+        return sb.toString();
+    }
+
+    public void register(String type, String name, Object mbean) {
+        final String jmxName = generateJmxPath(type, name);
         try {
             final ObjectName jmxObjectName = new ObjectName(jmxName);
             try {
                 mbs.getObjectInstance(jmxObjectName);
-                logger.warn("MBean already registered '{}'", jmxName);
+                logger.debug("MBean already registered '{}'", jmxName);
             } catch (InstanceNotFoundException e1) {
                 mbs.registerMBean(mbean, jmxObjectName);
             }
@@ -38,8 +49,8 @@ public class MBeanRegistrationFactory {
         }
     }
 
-    public void unregister(String domain, String name) {
-        final String jmxName = String.format("%s,name=%s", domain, name.replaceAll(":", "_"));
+    public void unregister(String type, String name) {
+        final String jmxName = generateJmxPath(type, name);
         try {
             final ObjectName jmxObjectName = new ObjectName(jmxName);
             try {

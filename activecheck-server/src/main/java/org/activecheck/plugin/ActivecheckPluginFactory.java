@@ -19,19 +19,14 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Observer;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class ActivecheckPluginFactory {
     private static final Logger logger = LoggerFactory.getLogger(ActivecheckPluginFactory.class);
-    private static final String JMX_OBJECT_DOMAIN = "org.activecheck:type=Plugins";
 
-    private final Map<String, ActivecheckPlugin> activecheckPlugins;
+    private final Map<String, ActivecheckPlugin> activecheckPlugins = new ConcurrentHashMap<>();
     private URLClassLoader urlClassLoader = null;
-
-    public ActivecheckPluginFactory() {
-        activecheckPlugins = new ConcurrentHashMap<>();
-    }
 
     public void setPluginDir(String rawPluginDir) {
         final List<URL> pluginURLs = new ArrayList<>();
@@ -62,10 +57,11 @@ public class ActivecheckPluginFactory {
     }
 
     @SuppressWarnings("unchecked")
-    public ActivecheckPlugin createPlugin(File configFile, ActivecheckConfiguration configuration, Observer observer)
+    public ActivecheckPlugin createPlugin(File configFile, ActivecheckConfiguration configuration, int reloadInterval)
             throws ActivecheckPluginFactoryException, ConfigurationException {
         PropertiesConfiguration pluginProperties = new PropertiesConfiguration(configFile);
         pluginProperties.setFile(configFile);
+        final String pluginKey = configFile.getAbsolutePath();
 
         // create plugin class loader
         if (urlClassLoader == null) {
@@ -73,12 +69,12 @@ public class ActivecheckPluginFactory {
         }
 
         final String classname = pluginProperties.getString("class", null);
-        ActivecheckPlugin activecheckPlugin = activecheckPlugins.get(configFile.getPath());
+        ActivecheckPlugin plugin = activecheckPlugins.get(pluginKey);
 
         // determine plugin class name
         final Class<? extends ActivecheckPlugin> pluginClass;
-        if (activecheckPlugin != null) {
-            pluginClass = activecheckPlugin.getClass();
+        if (plugin != null) {
+            pluginClass = plugin.getClass();
         } else {
             try {
                 pluginClass = (Class<? extends ActivecheckPlugin>) urlClassLoader.loadClass(classname);
@@ -99,13 +95,13 @@ public class ActivecheckPluginFactory {
         }
 
         // set properties
-        if (activecheckPlugin != null) {
-            activecheckPlugin.setProperties(pluginProperties);
+        if (plugin != null) {
+            plugin.setProperties(pluginProperties);
         } else {
             try {
                 final Constructor<? extends ActivecheckPlugin> constructor = pluginClass
                         .getConstructor(PropertiesConfiguration.class);
-                activecheckPlugin = constructor.newInstance(pluginProperties);
+                plugin = constructor.newInstance(pluginProperties);
             } catch (NoSuchMethodException | SecurityException
                     | InstantiationException | IllegalAccessException
                     | IllegalArgumentException e) {
@@ -115,40 +111,42 @@ public class ActivecheckPluginFactory {
                 logger.error("Unable to instantiate plugin for class '{}'", classname);
                 throw new ActivecheckPluginFactoryException(e.getCause());
             }
-            activecheckPlugins.put(configFile.getPath(), activecheckPlugin);
-            activecheckPlugin.addObserver(observer);
-
-            // add to jmx
-            final String pluginName = activecheckPlugin.getPluginName();
-            MBeanRegistrationFactory.getInstance().register(JMX_OBJECT_DOMAIN, pluginName, activecheckPlugin);
+            activecheckPlugins.put(plugin.getConfigFile(), plugin);
         }
+
+        // set time when to consider a reporter as dead
+        plugin.setDestroyAfterSeconds(reloadInterval);
 
         // remove disabled plugin
-        if (!activecheckPlugin.isEnabled()) {
-            final String pluginName = activecheckPlugin.getPluginName();
-
-            logger.info("Removing plugin '{}'", pluginName);
-            activecheckPlugin.deleteObservers();
-            activecheckPlugins.remove(configFile.getPath());
-
-            // remove from jmx
-            MBeanRegistrationFactory.getInstance().unregister(JMX_OBJECT_DOMAIN, pluginName);
+        if (!plugin.isEnabled()) {
+            removePlugin(plugin);
         }
 
-        return activecheckPlugin;
+
+        return plugin;
     }
 
-    public int getPluginCount() {
-        return activecheckPlugins.size();
-    }
-
+    @SuppressWarnings("unchecked")
     public <T extends ActivecheckPlugin> Collection<T> getPlugins(final Class<T> cls) {
-        final Collection<T> collection = new ArrayList<>();
-        for (ActivecheckPlugin plugin : activecheckPlugins.values()) {
-            if (cls.isInstance(plugin)) {
-                collection.add((T) plugin);
+        return (Collection<T>) activecheckPlugins.values().stream()
+                .filter(plugin -> plugin != null && cls.isInstance(plugin))
+                .collect(Collectors.toSet());
+    }
+
+    private void removePlugin(ActivecheckPlugin plugin) {
+        final String pluginName = plugin.getPluginName();
+        logger.debug("Removing plugin {}", pluginName);
+
+        // delete all references
+        plugin.deleteObservers();
+        activecheckPlugins.remove(plugin.getConfigFile());
+    }
+
+    public void removeDeadPlugins() {
+        for (final ActivecheckPlugin plugin : activecheckPlugins.values()) {
+            if (!plugin.isEnabled()) {
+                removePlugin(plugin);
             }
         }
-        return collection;
     }
 }

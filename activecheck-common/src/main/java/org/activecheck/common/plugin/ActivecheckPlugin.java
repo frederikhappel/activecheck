@@ -14,16 +14,32 @@ import java.util.Observable;
 
 public abstract class ActivecheckPlugin extends Observable implements ConfigurationListener, ActivecheckPluginMBean {
     private static final Logger logger = LoggerFactory.getLogger(ActivecheckPlugin.class);
+    protected static final int DO_NOT_DESTROY = -1;
 
     // class members
     protected final PropertiesConfiguration properties;
     private String pluginName = null;
+    private final String configFile;
     protected long lastReloadTime = System.currentTimeMillis();
+    protected boolean enabled = true;
+    protected int destroyAfterSeconds = 300;
 
     public ActivecheckPlugin(PropertiesConfiguration properties) {
         Validate.notNull(properties);
         this.properties = (PropertiesConfiguration) properties.clone();
-        this.properties.setReloadingStrategy(new FileChangedReloadingStrategy());
+
+        // set members
+        enabled = properties.getBoolean("enabled", enabled);
+        if (properties.getFile() != null) {
+            configFile = properties.getFile().getAbsolutePath();
+            // configure reloading strategy for the configuration file
+            // TODO: does that work?
+            this.properties.setReloadingStrategy(new FileChangedReloadingStrategy());
+        } else {
+            configFile = null;
+        }
+
+        // configure listeners for the configuration
         this.properties.addConfigurationListener(this);
     }
 
@@ -40,6 +56,7 @@ public abstract class ActivecheckPlugin extends Observable implements Configurat
                 properties.setProperty(key, value);
             }
         }
+        enabled = properties.getBoolean("enabled", enabled);
         lastReloadTime = System.currentTimeMillis();
 
         // run trigger
@@ -53,10 +70,30 @@ public abstract class ActivecheckPlugin extends Observable implements Configurat
         reloadConfiguration();
     }
 
+    @Override
     public final boolean isEnabled() {
-        return properties.getBoolean("enabled", true);
+        if (destroyAfterSeconds != DO_NOT_DESTROY) {
+            return enabled && System.currentTimeMillis() - lastReloadTime <= destroyAfterSeconds * 1000;
+        }
+        return true;
     }
 
+    @Override
+    public String disable() {
+        if (this.destroyAfterSeconds != DO_NOT_DESTROY) {
+            enabled = false;
+
+            // notify observers
+            setChanged();
+            notifyObservers();
+
+            return "successfully disabled the plugin";
+        } else {
+            return "plugin cannot be disabled as it is set to DO_NOT_DESTROY";
+        }
+    }
+
+    @Override
     public final String reloadConfiguration() {
         final long currentReloadTime = System.currentTimeMillis();
         logger.debug("Reloading configuration for plugin '{}'", getPluginName());
@@ -65,6 +102,7 @@ public abstract class ActivecheckPlugin extends Observable implements Configurat
         return String.format("Reloaded Configuration on %s", new Date(lastReloadTime));
     }
 
+    @Override
     public final String getConfigurationReloadTime() {
         if (lastReloadTime > 0) {
             return new Date(lastReloadTime).toString();
@@ -73,8 +111,9 @@ public abstract class ActivecheckPlugin extends Observable implements Configurat
         }
     }
 
+    @Override
     public final String getConfigFile() {
-        return properties.getFileName();
+        return configFile;
     }
 
     public final String getPluginName() {
@@ -86,9 +125,21 @@ public abstract class ActivecheckPlugin extends Observable implements Configurat
     }
 
     protected final void setPluginName(String pluginName) {
-        // make sure pluginName cannot change
+        // make sure pluginName cannot change once it is set
         if (this.pluginName == null) {
             this.pluginName = pluginName;
+        }
+    }
+
+    @Override
+    public final int getDestroyAfterSeconds() {
+        return destroyAfterSeconds;
+    }
+
+    public final void setDestroyAfterSeconds(int destroyAfterSeconds) {
+        // protect plugins from being removed
+        if (this.destroyAfterSeconds != DO_NOT_DESTROY) {
+            this.destroyAfterSeconds = destroyAfterSeconds;
         }
     }
 

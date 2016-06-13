@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.Observable;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 public class PidFile extends Observable implements Runnable {
@@ -73,8 +74,11 @@ public class PidFile extends Observable implements Runnable {
         check();
     }
 
-    public int getPid() {
-        return pid;
+    public Optional<Integer> getPid() {
+        if (pid > -1) {
+            return Optional.of(pid);
+        }
+        return Optional.empty();
     }
 
     public String getFilename() {

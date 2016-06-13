@@ -16,25 +16,21 @@ abstract public class ActivecheckCollector extends ActivecheckPlugin implements 
     private final ActivecheckCollectorType type;
 
     @SuppressWarnings("unused")
-    public ActivecheckCollector(PropertiesConfiguration properties,
-                                ActivecheckCollectorType type) {
+    public ActivecheckCollector(PropertiesConfiguration properties, ActivecheckCollectorType type) {
         super(properties);
         this.type = type;
 
         // initialize what has not been initialized
-        setPluginName(String.format(
-                "COLLECTOR_%s_%s_%s", type, this.getClass().getSimpleName().toUpperCase(), hashCode()
-        ));
+        setPluginName(String.format("%s_%s_%s", type, this.getClass().getSimpleName().toUpperCase(), hashCode()));
         pluginInit();
     }
 
-    public ActivecheckCollector(PropertiesConfiguration properties,
-                                ActivecheckCollectorType type, String pluginNameSuffix) {
+    public ActivecheckCollector(PropertiesConfiguration properties, ActivecheckCollectorType type, String pluginNameSuffix) {
         super(properties);
         this.type = type;
 
         // initialize what has not been initialized
-        setPluginName(String.format("COLLECTOR_%s_%s", type, pluginNameSuffix));
+        setPluginName(String.format("%s_%s", type, pluginNameSuffix));
         pluginInit();
     }
 

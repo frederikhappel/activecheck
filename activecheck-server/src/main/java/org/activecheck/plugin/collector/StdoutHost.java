@@ -21,6 +21,7 @@ public class StdoutHost extends ActivecheckCollector {
     // dummy constructor
     public StdoutHost() {
         super(defaultProperties, ActivecheckCollectorType.REPORTING, "STDOUT");
+        destroyAfterSeconds = DO_NOT_DESTROY;
     }
 
     @Override

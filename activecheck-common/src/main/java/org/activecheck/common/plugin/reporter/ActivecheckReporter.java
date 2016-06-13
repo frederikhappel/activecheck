@@ -44,7 +44,6 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements R
     private long executionTime = 0;
     private long lastScheduleTime = 0;
     private long lastScheduleDelay = 0;
-    private int destroyAfterSeconds = 300;
     private final NagiosServiceReportRouting reportRouting;
     private int errorCountMax = 0;
     private int errorCount = 0;
@@ -58,7 +57,7 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements R
         reportRouting = new NagiosServiceReportRouting(properties);
 
         // initialize what has not been initialized
-        setPluginName(String.format("REPORTER_%s", overallServiceName));
+        setPluginName(overallServiceName);
         pluginInit();
     }
 
@@ -80,68 +79,45 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements R
     }
 
     public final int getScheduleIntervalInSeconds() {
-        return (overallServiceStatus != NagiosServiceStatus.OK) ? retryInterval
-                : checkInterval;
+        return (overallServiceStatus != NagiosServiceStatus.OK) ? retryInterval : checkInterval;
     }
 
     @Override
     public final void run() {
-        if (status == ActivecheckReporterStatus.SCHEDULED) {
-            long currentTime = System.currentTimeMillis();
+        if (!isEnabled()) {
+            // kill this reporter
+            kill();
+        } else if (status == ActivecheckReporterStatus.SCHEDULED) {
+            // run task
+            lastRunTime = System.currentTimeMillis();
+            status = ActivecheckReporterStatus.RUNNING;
             try {
-                if (currentTime - lastReloadTime > destroyAfterSeconds * 1000) {
-                    // run cleanup jobs
-                    logger.info("Thread died for service '{}'", overallServiceName);
-                    status = ActivecheckReporterStatus.DEAD;
-                    cleanUp();
+                runCommand();
+
+                // clear error count
+                errorCount = 0;
+                status = ActivecheckReporterStatus.REQUEUE;
+            } catch (ActivecheckReporterException e) {
+                setOverallServiceReport(NagiosServiceStatus.CRITICAL, e.getMessage());
+
+                // increase error count
+                errorCount++;
+                logger.debug("error count for service {} = {}", overallServiceName, errorCount);
+                if (errorCountMax > 0 && errorCount >= errorCountMax) {
+                    status = ActivecheckReporterStatus.REQUESTSHUTDOWN;
+                    logger.error("reached max errors of {} for service {}. Requesting shutdown",
+                            errorCountMax, overallServiceName);
                 } else {
-                    // run task
-                    lastRunTime = currentTime;
-                    status = ActivecheckReporterStatus.RUNNING;
-                    try {
-                        runCommand();
-
-                        // clear error count
-                        errorCount = 0;
-                        status = ActivecheckReporterStatus.REQUEUE;
-                    } catch (ActivecheckReporterException e) {
-                        setOverallServiceReport(NagiosServiceStatus.CRITICAL,
-                                e.getMessage());
-
-                        // increase error count
-                        errorCount++;
-                        logger.debug("error count for service {} = {}", overallServiceName, errorCount);
-                        if (errorCountMax > 0 && errorCount >= errorCountMax) {
-                            status = ActivecheckReporterStatus.REQUESTSHUTDOWN;
-                            logger.error("reached max errors of {} for service {}. Requesting shutdown",
-                                    errorCountMax, overallServiceName);
-                        } else {
-                            status = ActivecheckReporterStatus.ERROR;
-                            logger.error(e.getMessage());
-                            logger.debug(e.getMessage(), e);
-                        }
-                    }
+                    status = ActivecheckReporterStatus.ERROR;
+                    logger.error(e.getMessage());
+                    logger.debug(e.getMessage(), e);
                 }
-            } finally {
-                // cancel schedule
-                if (status == ActivecheckReporterStatus.DEAD && sf != null) {
-                    sf.cancel(true);
-                }
-
-                // notify observers
-                setChanged();
-                notifyObservers(status);
             }
             executionTime = System.currentTimeMillis() - lastRunTime;
         }
-    }
-
-    public final int getDestroyAfterSeconds() {
-        return destroyAfterSeconds;
-    }
-
-    public final void setDestroyAfterSeconds(int destroyAfterSeconds) {
-        this.destroyAfterSeconds = destroyAfterSeconds;
+        // notify observers
+        setChanged();
+        notifyObservers(status);
     }
 
     public final String getOverallServiceName() {
@@ -184,6 +160,14 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements R
         return lastRunTime;
     }
 
+    public final String getNextRunTime() {
+        if (lastRunTime > 0) {
+            return new Date(lastRunTime + lastScheduleDelay).toString();
+        } else {
+            return new Date(System.currentTimeMillis() + lastScheduleDelay).toString();
+        }
+    }
+
     public final long getExecutionTimeMillis() {
         return executionTime;
     }
@@ -223,6 +207,15 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements R
     }
 
     public final List<String> getPerformanceData() {
+        // TODO: replace with stream API
+//        return (List<String>) serviceReports.values().stream()
+//                .filter(report -> report != null)
+//                .map(report -> report.getPerfData().stream()
+//                        .filter(perfdata -> perfdata != null)
+//                        .map(perfdata -> perfdata.getLine())
+//                        .collect(Collectors.toList())
+//                )
+//                .collect(Collectors.toList());
         final List<String> perfDataLines = new ArrayList<>();
         for (NagiosServiceReport report : serviceReports.values()) {
             for (NagiosPerformanceData perfData : report.getPerfData()) {
@@ -332,12 +325,6 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements R
         return exitMessage.toString();
     }
 
-    abstract protected void reporterInit();
-
-    abstract protected void cleanUp();
-
-    abstract public void runCommand() throws ActivecheckReporterException;
-
     @Override
     public String runCommandOperation() {
         try {
@@ -347,4 +334,29 @@ public abstract class ActivecheckReporter extends ActivecheckPlugin implements R
             return e.getMessage();
         }
     }
+
+    private void kill() {
+        // set status to dead
+        status = ActivecheckReporterStatus.DEAD;
+
+        // cancel schedule
+        if (sf != null) {
+            sf.cancel(true);
+        }
+
+        // run cleanup jobs
+        cleanUp();
+    }
+
+    @Override
+    public final String disable() {
+        kill();
+        return super.disable();
+    }
+
+    abstract protected void reporterInit();
+
+    abstract protected void cleanUp();
+
+    abstract public void runCommand() throws ActivecheckReporterException;
 }

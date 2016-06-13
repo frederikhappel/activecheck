@@ -7,7 +7,6 @@ import org.activecheck.common.nagios.NagiosServiceStatus;
 import org.activecheck.common.plugin.ActivecheckPlugin;
 import org.activecheck.common.plugin.collector.ActivecheckCollector;
 import org.activecheck.common.plugin.reporter.ActivecheckReporter;
-import org.activecheck.common.plugin.reporter.ActivecheckReporterStatus;
 import org.activecheck.net.ActivecheckServer;
 import org.activecheck.net.TcpActivecheckServer;
 import org.activecheck.plugin.ActivecheckPluginFactory;
@@ -30,8 +29,7 @@ import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
-import java.util.Observable;
-import java.util.Observer;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Activecheck is used to submit passive checks to NSCA services. While it is
@@ -39,7 +37,7 @@ import java.util.Observer;
  *
  * @author Frederik Happel mail@frederikhappel.de
  */
-public class Activecheck implements Observer {
+public class Activecheck {
     private static final Logger logger = LoggerFactory.getLogger(Activecheck.class);
     private static final String VERSION = Activecheck.class.getPackage().getImplementationVersion();
 
@@ -70,9 +68,7 @@ public class Activecheck implements Observer {
         try {
             configuration = new ActivecheckConfiguration(cfgfile);
         } catch (ConfigurationException e) {
-            final String errorMessage = String.format(
-                    "Error creating configuration object '%s': %s", cfgfile, e.getMessage()
-            );
+            final String errorMessage = String.format("Error creating configuration object '%s': %s", cfgfile, e.getMessage());
             logger.error(errorMessage);
             logger.trace(e.getMessage(), e);
             System.exit(1);
@@ -81,8 +77,13 @@ public class Activecheck implements Observer {
         // initialize members
         pluginFactory = new ActivecheckPluginFactory();
         reporterScheduler = new ActivecheckReporterScheduler();
-        activecheckPacketProcessor = new ActivecheckPacketProcessor();
+        activecheckPacketProcessor = new ActivecheckPacketProcessor(localFqdn);
         checkDumper = new CheckDumper();
+
+        // log to console
+        if (configuration.logToConsole()) {
+            activecheckPacketProcessor.addOrUpdateCollector(new StdoutHost());
+        }
 
         // load configuration
         reloadConfiguration();
@@ -136,15 +137,7 @@ public class Activecheck implements Observer {
         checkDumpInterval = configuration.getCheckDumpInterval();
         checkDumper.setCheckDumpFile(configuration.getCheckDumpFile());
 
-        // log to console
-        if (configuration.logToConsole()) {
-            activecheckPacketProcessor.addOrUpdateCollector(new StdoutHost());
-        }
-
-        // remove nonexistent collectors
-        activecheckPacketProcessor.removeNonexistentHosts();
-
-        // update worker pool size
+        // update worker pool size and cleanup dead reporters
         reporterScheduler.setupExecutorService(configuration.getWorker());
 
         // update plugins and reporters
@@ -153,12 +146,13 @@ public class Activecheck implements Observer {
             logger.debug("Including configuration in file {}", configFile);
             try {
                 // load properties from file
-                final ActivecheckPlugin activecheckPlugin = pluginFactory.createPlugin(configFile, configuration, this);
+                final ActivecheckPlugin activecheckPlugin = pluginFactory.createPlugin(configFile, configuration, reloadInterval * 2);
 
                 // determine if collector or reporter
                 if (activecheckPlugin instanceof ActivecheckReporter) {
                     // update or create NagiosReporter and thread
-                    reporterScheduler.addOrUpdateReporter((ActivecheckReporter) activecheckPlugin, reloadInterval);
+                    reporterScheduler.addOrUpdateReporter((ActivecheckReporter) activecheckPlugin);
+                    activecheckPlugin.addObserver(activecheckPacketProcessor);
                 } else if (activecheckPlugin instanceof ActivecheckCollector) {
                     activecheckPacketProcessor.addOrUpdateCollector((ActivecheckCollector) activecheckPlugin);
                 } else {
@@ -168,36 +162,6 @@ public class Activecheck implements Observer {
                 logger.error("Cannot create plugin defined in '{}': {}", configFile, e.getMessage());
                 logger.debug(e.getMessage(), e);
             }
-        }
-
-    }
-
-    @Override
-    public void update(Observable arg0, Object arg1) {
-        logger.debug("Received update from {}", arg0.getClass());
-        if (arg0 instanceof ActivecheckReporter) {
-            final ActivecheckReporter nagiosReporter = (ActivecheckReporter) arg0;
-            final long startTime = nagiosReporter.getLastRunTimeMillis();
-            final long finishTime = startTime + nagiosReporter.getExecutionTimeMillis();
-
-            for (NagiosServiceReport report : nagiosReporter.getReports()) {
-                // send report to configured hosts
-                report.setServiceHost(localFqdn);
-                report.setStartTime(startTime);
-                report.setFinishTime(finishTime);
-                activecheckPacketProcessor.process(report);
-            }
-            if (nagiosReporter.getStatus() == ActivecheckReporterStatus.REQUESTSHUTDOWN) {
-                final String errorMessage = String.format(
-                        "Shutdown due to request from %s", nagiosReporter.getOverallServiceName()
-                );
-                logger.error(errorMessage);
-                System.exit(1);
-            }
-            reporterScheduler.reschedule(nagiosReporter);
-        } else if (arg0 instanceof ActivecheckServer) {
-            // send received packet to configured hosts
-            activecheckPacketProcessor.process((NagiosServiceReport) arg1);
         }
     }
 
@@ -209,7 +173,7 @@ public class Activecheck implements Observer {
             final int bindPort = configuration.getBindPort();
             try {
                 final ActivecheckServer activecheckServer = new TcpActivecheckServer(bindAddress, bindPort);
-                activecheckServer.addObserver(this);
+                activecheckServer.addObserver(activecheckPacketProcessor);
                 final Thread t = new Thread(activecheckServer);
                 t.setName("ActivecheckServer");
                 t.start();
@@ -221,16 +185,11 @@ public class Activecheck implements Observer {
             }
         }
 
+        // main loop
         long lastReloadMillis = System.currentTimeMillis();
         long lastHostCheckMillis = 0;
         long lastCheckDumpMillis = 0;
         while (true) {
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                logger.error("Failed to sleep thread for 500ms");
-                logger.trace(e.getMessage(), e);
-            }
             final long time = System.currentTimeMillis();
 
             // reload configuration?
@@ -268,6 +227,16 @@ public class Activecheck implements Observer {
                 logger.debug("Next check dump in {}s", checkDumpInterval);
             }
 
+            // remove nonexistent collectors
+            pluginFactory.removeDeadPlugins();
+
+            // sleep for 500ms
+            try {
+                TimeUnit.MILLISECONDS.sleep(500);
+            } catch (InterruptedException e) {
+                logger.error("Failed to sleep thread for 500ms");
+                logger.trace(e.getMessage(), e);
+            }
         }
     }
 

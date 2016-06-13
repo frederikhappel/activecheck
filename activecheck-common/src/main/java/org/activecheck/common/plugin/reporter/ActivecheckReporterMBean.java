@@ -9,9 +9,6 @@ public interface ActivecheckReporterMBean extends ActivecheckPluginMBean {
     // @Description("rerun checks")
     String runCommandOperation();
 
-    // @Description("destroy reporter after specified time in seconds")
-    int getDestroyAfterSeconds();
-
     // @Description("Nagios service name")
     String getOverallServiceName();
 
@@ -32,6 +29,9 @@ public interface ActivecheckReporterMBean extends ActivecheckPluginMBean {
 
     // @Description("last run time")
     String getLastRunTime();
+
+    // @Description("next run time")
+    String getNextRunTime();
 
     // @Description("execution time in milliseconds")
     long getExecutionTimeMillis();
