@@ -104,7 +104,7 @@ public class ActivecheckPluginFactory {
                 plugin = constructor.newInstance(pluginProperties);
             } catch (NoSuchMethodException | SecurityException
                     | InstantiationException | IllegalAccessException
-                    | IllegalArgumentException e) {
+                    | IllegalArgumentException | NoClassDefFoundError e) {
                 logger.error("Unable to instantiate plugin for class '{}'", classname);
                 throw new ActivecheckPluginFactoryException(e);
             } catch (InvocationTargetException e) {
