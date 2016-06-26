@@ -1,0 +1,8 @@
+# example service configuration file
+# for ActiveCheck with jmx
+enabled = false
+servicename = graylog2-streams
+check_interval = 10
+graylog2.username = username
+graylog2.password = password
+url = http://localhost:12900

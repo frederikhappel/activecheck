@@ -1,0 +1,1 @@
+# activecheck-collector-nagmq

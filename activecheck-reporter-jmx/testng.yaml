@@ -1,0 +1,8 @@
+name: Suite
+parallel: classes
+tests:
+  - name: TestAll
+    parallel: classes
+    classes:
+      - org.activecheck.plugin.reporter.jmx.JMXQueryExecutorTest
+      - org.activecheck.plugin.reporter.jmx.JMXQueryTest
