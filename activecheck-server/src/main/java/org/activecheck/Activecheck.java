@@ -136,6 +136,7 @@ public class Activecheck {
         // should we dump failed checks into a file?
         checkDumpInterval = configuration.getCheckDumpInterval();
         checkDumper.setCheckDumpFile(configuration.getCheckDumpFile());
+        checkDumper.setFilter(configuration.getCheckDumpFilters());
 
         // update worker pool size and cleanup dead reporters
         reporterScheduler.setupExecutorService(configuration.getWorker());

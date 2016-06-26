@@ -128,4 +128,8 @@ public class ActivecheckConfiguration {
     public String getCheckDumpFile() {
         return properties.getString("checkdump_file", null);
     }
+
+    public String[] getCheckDumpFilters() {
+        return properties.getStringArray("checkdump_filters");
+    }
 }
