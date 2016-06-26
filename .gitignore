@@ -1,6 +1,6 @@
-/target
+*/target
 /bin
-/test-output
+*/test-output
 .classpath
 .settings/
 .project
