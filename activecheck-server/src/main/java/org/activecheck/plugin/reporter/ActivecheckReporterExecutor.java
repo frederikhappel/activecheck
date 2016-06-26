@@ -10,7 +10,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * ScheduledThreadPoolExecutor with some logic to pause the execution and to
  * decrease the worker pool size.
  *
- * @since v1.4.0
+ * @since v1.2.0
  */
 public class ActivecheckReporterExecutor extends ScheduledThreadPoolExecutor implements ActivecheckReporterExecutorMBean {
     public boolean isPaused;

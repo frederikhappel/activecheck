@@ -18,7 +18,7 @@ import java.util.Set;
 /**
  * This class is used to dump the results of all reporters to a file
  *
- * @since v1.4.0
+ * @since v1.2.0
  */
 public class CheckDumper {
     private static final Logger logger = LoggerFactory.getLogger(CheckDumper.class);
