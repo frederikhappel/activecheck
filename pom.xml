@@ -23,6 +23,13 @@
     <modules>
         <module>activecheck-common</module>
         <module>activecheck-server</module>
+        <module>activecheck-collector-graphite</module>
+        <module>activecheck-collector-nagmq</module>
+        <module>activecheck-collector-nsca</module>
+        <module>activecheck-reporter-jmx</module>
+        <module>activecheck-reporter-nrpe</module>
+        <module>activecheck-reporter-mongodb</module>
+        <module>activecheck-reporter-graylog</module>
     </modules>
     <build>
         <plugins>
