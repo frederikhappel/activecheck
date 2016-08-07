@@ -1,11 +1,5 @@
 package org.activecheck;
 
-import org.activecheck.common.Encoding;
-import org.activecheck.common.nagios.NagiosServiceReport;
-import org.activecheck.common.plugin.reporter.ActivecheckReporter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -14,6 +8,12 @@ import java.io.OutputStreamWriter;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.activecheck.common.Encoding;
+import org.activecheck.common.nagios.NagiosServiceReport;
+import org.activecheck.common.plugin.reporter.ActivecheckReporter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class is used to dump the results of all reporters to a file
@@ -24,6 +24,7 @@ public class CheckDumper {
     private static final Logger logger = LoggerFactory.getLogger(CheckDumper.class);
 
     private String filename = null;
+    @SuppressWarnings("unchecked")
     private Set<String> filters = new HashSet();
 
     public void setCheckDumpFile(String filename) {
@@ -53,22 +54,22 @@ public class CheckDumper {
     }
 
     public void dump(Collection<ActivecheckReporter> reporters) {
-        final File checkDumpFile = new File(filename);
-        try (final BufferedWriter checkDumpWriter = new BufferedWriter(new OutputStreamWriter(
-                new FileOutputStream(checkDumpFile.getAbsolutePath()), Encoding.UTF8))) {
-            for (ActivecheckReporter reporter : reporters) {
-                if (filters.contains(reporter.getOverallServiceStatus())) {
-                    for (final NagiosServiceReport report : reporter.getReports()) {
-                        checkDumpWriter.write(String.format(
-                                "%s: %s (%s)%n",
-                                reporter.getOverallServiceName(), reporter.getOverallServiceStatus(), report.getMessage()
-                        ));
+        if (filename != null) {
+            final File checkDumpFile = new File(filename);
+            try (final BufferedWriter checkDumpWriter = new BufferedWriter(
+                    new OutputStreamWriter(new FileOutputStream(checkDumpFile.getAbsolutePath()), Encoding.UTF8))) {
+                for (ActivecheckReporter reporter : reporters) {
+                    if (filters.contains(reporter.getOverallServiceStatus())) {
+                        for (final NagiosServiceReport report : reporter.getReports()) {
+                            checkDumpWriter.write(String.format("%s: %s (%s)%n", reporter.getOverallServiceName(),
+                                    reporter.getOverallServiceStatus(), report.getMessage()));
+                        }
                     }
                 }
+            } catch (IOException e) {
+                logger.error("Unable to open check dump file '{}': {}", filename, e.getMessage());
+                logger.trace(e.getMessage(), e);
             }
-        } catch (IOException e) {
-            logger.error("Unable to open check dump file '{}': {}", filename, e.getMessage());
-            logger.trace(e.getMessage(), e);
         }
     }
 }
