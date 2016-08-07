@@ -3,16 +3,16 @@
     <parent>
         <groupId>org.activecheck</groupId>
         <artifactId>activecheck-parent</artifactId>
-        <version>1.2.1-SNAPSHOT</version>
+        <version>1.2.2-SNAPSHOT</version>
     </parent>
     <artifactId>activecheck-collector-nagmq</artifactId>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.0.3-SNAPSHOT</version>
     <name>activecheck-collector-nagmq</name>
     <dependencies>
         <dependency>
             <groupId>org.activecheck</groupId>
             <artifactId>activecheck-common</artifactId>
-            <version>1.2.1-SNAPSHOT</version>
+            <version>1.2.2-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

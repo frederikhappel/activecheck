@@ -3,10 +3,10 @@
     <parent>
         <groupId>org.activecheck</groupId>
         <artifactId>activecheck-parent</artifactId>
-        <version>1.2.1-SNAPSHOT</version>
+        <version>1.2.2-SNAPSHOT</version>
     </parent>
     <artifactId>activecheck-reporter-mongodb</artifactId>
-    <version>1.1.2-SNAPSHOT</version>
+    <version>1.1.3-SNAPSHOT</version>
     <name>activecheck-reporter-mongodb</name>
     <repositories>
         <repository>
@@ -25,7 +25,7 @@
         <dependency>
             <groupId>org.activecheck</groupId>
             <artifactId>activecheck-common</artifactId>
-            <version>1.2.1-SNAPSHOT</version>
+            <version>1.2.2-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
