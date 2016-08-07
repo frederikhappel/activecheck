@@ -12,7 +12,8 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * @since v1.2.0
  */
-public class ActivecheckReporterExecutor extends ScheduledThreadPoolExecutor implements ActivecheckReporterExecutorMBean {
+public class ActivecheckReporterExecutor extends ScheduledThreadPoolExecutor
+        implements ActivecheckReporterExecutorMBean {
     public boolean isPaused;
     private final ReentrantLock pauseLock = new ReentrantLock();
     private final Condition unpaused = pauseLock.newCondition();
@@ -23,6 +24,8 @@ public class ActivecheckReporterExecutor extends ScheduledThreadPoolExecutor imp
      * A runtime exception used to prematurely terminate threads in this pool.
      */
     private static class ShutdownException extends RuntimeException {
+        private static final long serialVersionUID = 2473973552846774645L;
+
         ShutdownException(String message) {
             super(message);
         }
@@ -38,8 +41,9 @@ public class ActivecheckReporterExecutor extends ScheduledThreadPoolExecutor imp
         /**
          * Create a new shutdown handler.
          *
-         * @param handler The original handler to deligate non-shutdown
-         *                exceptions to.
+         * @param handler
+         *            The original handler to deligate non-shutdown exceptions
+         *            to.
          */
         ShutdownHandler(Thread.UncaughtExceptionHandler handler) {
             this.handler = handler;
@@ -49,11 +53,12 @@ public class ActivecheckReporterExecutor extends ScheduledThreadPoolExecutor imp
          * Quietly ignore {@link ShutdownException}.
          * <p>
          * Do nothing if this is a ShutdownException, this is just to prevent
-         * logging an uncaught exception which is expected.  Otherwise forward
-         * it to the thread group handler (which may hand it off to the default
+         * logging an uncaught exception which is expected. Otherwise forward it
+         * to the thread group handler (which may hand it off to the default
          * uncaught exception handler).
          * </p>
          */
+        @Override
         public void uncaughtException(Thread thread, Throwable throwable) {
             if (!(throwable instanceof ShutdownException)) {
                 /**
@@ -153,8 +158,8 @@ public class ActivecheckReporterExecutor extends ScheduledThreadPoolExecutor imp
             getQueue().add(r);
 
             /**
-             * Throwing a runtime exception is the only way to prematurely
-             * cause a worker thread from the TheadPoolExecutor to exit.
+             * Throwing a runtime exception is the only way to prematurely cause
+             * a worker thread from the TheadPoolExecutor to exit.
              */
             throw new ShutdownException("Terminating thread " + t.getName());
         }
