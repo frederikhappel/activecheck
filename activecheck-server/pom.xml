@@ -11,7 +11,7 @@
         <dependency>
             <groupId>org.activecheck</groupId>
             <artifactId>activecheck-common</artifactId>
-            <version>${version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.reflections</groupId>
