@@ -1,20 +1,21 @@
 package org.activecheck.plugin.reporter.jmx.query;
 
-import org.activecheck.plugin.reporter.jmx.common.JMXProvider;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.management.MBeanServerConnection;
-import javax.management.ObjectName;
-import javax.management.remote.JMXConnector;
-import javax.management.remote.JMXServiceURL;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.management.MBeanServerConnection;
+import javax.management.ObjectName;
+import javax.management.remote.JMXConnector;
+import javax.management.remote.JMXServiceURL;
+
+import org.activecheck.plugin.reporter.jmx.common.JMXProvider;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * JMXQueryExecutor is used for local or remote request of JMX attributes It
@@ -25,7 +26,8 @@ import java.util.Map;
  * system.
  *
  * @author unknown
- * @author Ryan Gravener (<a href="http://ryangravener.com/app/contact">rgravener</a>)
+ * @author Ryan Gravener
+ *         (<a href="http://ryangravener.com/app/contact">rgravener</a>)
  * @author Per Huss mr.per.huss (a) gmail.com
  * @author Frederik Happel
  */
@@ -133,10 +135,9 @@ public class JMXQueryExecutor {
             logger.trace(e.getMessage(), e);
             throw e;
         } catch (Exception e) {
-            final String message = "Could not invoke operation '" + attributeName
-                    + "(" + StringUtils.join(params, ",") + ")' on '" + object
-                    + "'";
-            logger.error(message, e.getMessage());
+            final String message = "Could not invoke operation '" + attributeName + "(" + StringUtils.join(params, ",")
+                    + ")' on '" + object + "': " + e.getMessage();
+            logger.error(message);
             logger.trace(e.getMessage(), e);
             throw new JMXQueryExecutorException(message, e);
         }
@@ -155,8 +156,9 @@ public class JMXQueryExecutor {
             logger.trace(e.getMessage(), e);
             throw e;
         } catch (Exception e) {
-            final String message = "Could not get value for attribute '" + attributeName + "' on '" + object + "'";
-            logger.error(message, e.getMessage());
+            final String message =
+                    "Could not get value for attribute '" + attributeName + "' on '" + object + "': " + e.getMessage();
+            logger.error(message);
             logger.trace(e.getMessage(), e);
             throw new JMXQueryExecutorException(message, e);
         }
